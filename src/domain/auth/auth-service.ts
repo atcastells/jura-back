@@ -19,6 +19,8 @@ export class AuthService {
     organizationId: string,
   ): Promise<User> {
     // 1. Check if user already exists in MongoDB to prevent race condition
+    // Note: For complete protection against concurrent requests, consider adding
+    // a unique index on the email field in MongoDB
     const existingUser = await this.authRepository.findByEmail(email);
     if (existingUser) {
       throw new HttpError(409, "User with this email already exists");
@@ -41,7 +43,7 @@ export class AuthService {
 
     if (!data.user) {
       console.error("Supabase signup succeeded but no user returned:", data);
-      throw new Error("Supabase signup failed: No user data");
+      throw new HttpError(500, "Supabase signup failed: No user data");
     }
 
     // 3. Check if user profile already exists (idempotency/edge case)
