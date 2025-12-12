@@ -43,11 +43,25 @@ async function startServer() {
     await dbConnection.connect(MONGODB_URI!, MONGODB_DB!);
 
     // Create Express app
-    const app = createApp();
+    const app = await createApp();
 
     // Start server
     app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+      const baseUrl = `http://localhost:${PORT}`;
+      console.log('\n');
+      console.log('╔══════════════════════════════════════════════════════════╗');
+      console.log('║                                                          ║');
+      console.log('║   🚀  JURA API SERVER                                    ║');
+      console.log('║                                                          ║');
+      console.log('╠══════════════════════════════════════════════════════════╣');
+      console.log('║                                                          ║');
+      console.log(`║   📡  Base URL:     ${baseUrl.padEnd(36)}║`);
+      console.log(`║   📚  API Docs:     ${(baseUrl + '/docs').padEnd(36)}║`);
+      console.log(`║   📋  OpenAPI:      ${(baseUrl + '/openapi.json').padEnd(36)}║`);
+      console.log(`║   💚  Health:       ${(baseUrl + '/health').padEnd(36)}║`);
+      console.log('║                                                          ║');
+      console.log('╚══════════════════════════════════════════════════════════╝');
+      console.log('\n');
     });
 
     // Graceful shutdown
