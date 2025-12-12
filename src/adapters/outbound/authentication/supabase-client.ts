@@ -11,10 +11,16 @@ export class SupabaseClient {
 
   private readonly supabaseUrl: string;
   private readonly supabaseAnonKey: string;
+  private readonly supabaseServiceRoleKey: string;
 
-  constructor(supabaseUrl: string, supabaseAnonKey: string) {
+  constructor(
+    supabaseUrl: string,
+    supabaseAnonKey: string,
+    supabaseServiceRoleKey: string,
+  ) {
     this.supabaseUrl = supabaseUrl;
     this.supabaseAnonKey = supabaseAnonKey;
+    this.supabaseServiceRoleKey = supabaseServiceRoleKey;
     this.initializeClient();
   }
 
@@ -42,16 +48,16 @@ export class SupabaseClient {
 
   public getAdminClient(): SupabaseJsClient {
     if (!this.adminClient) {
-      const supabaseUrl = process.env.SUPABASE_URL;
-      const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-      if (!supabaseUrl || !supabaseServiceRoleKey) {
+      if (!this.supabaseUrl || !this.supabaseServiceRoleKey) {
         throw new Error(
-          "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be defined in environment variables",
+          "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be defined",
         );
       }
 
-      this.adminClient = createClient(supabaseUrl, supabaseServiceRoleKey);
+      this.adminClient = createClient(
+        this.supabaseUrl,
+        this.supabaseServiceRoleKey,
+      );
     }
     return this.adminClient;
   }
