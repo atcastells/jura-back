@@ -1,0 +1,7 @@
+version: '2'
+authtoken: your_authtoken_here
+tunnels:
+  app:
+    addr: app:3000
+    proto: http
+    domain: your_custom_domain.ngrok-free.app
