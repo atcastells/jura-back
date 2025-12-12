@@ -1,2 +1,2 @@
 // Repository containers
-export const AUTH_REPOSITORY = 'AuthRepository';
+export const AUTH_REPOSITORY = "AuthRepository";

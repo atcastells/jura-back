@@ -1,10 +1,11 @@
 {
   "name": "node-hexagonal-backend",
   "version": "1.0.0",
+  "type": "module",
   "description": "Hexagonal architecture backend",
   "main": "dist/infrastructure/server.js",
   "scripts": {
-    "dev": "nodemon --exec ts-node src/infrastructure/server.ts",
+    "dev": "nodemon",
     "build": "tsc",
     "start": "node dist/infrastructure/server.js",
     "lint": "eslint src --ext .ts",
@@ -54,6 +55,7 @@
     "eslint": "^9.38.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-unicorn": "^62.0.0",
     "jest": "^30.2.0",
     "nodemon": "^3.1.10",
     "prettier": "^3.6.2",

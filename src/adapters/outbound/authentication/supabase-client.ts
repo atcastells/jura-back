@@ -1,33 +1,32 @@
-import { createClient, SupabaseClient as SupabaseJsClient } from '@supabase/supabase-js';
-import { Service } from 'typedi';
+import {
+  createClient,
+  SupabaseClient as SupabaseJsClient,
+} from "@supabase/supabase-js";
+import { Service } from "typedi";
 
 @Service()
 export class SupabaseClient {
-  private client: SupabaseJsClient | null = null;
-  private adminClient: SupabaseJsClient | null = null;
+  private client: SupabaseJsClient | undefined = undefined;
+  private adminClient: SupabaseJsClient | undefined = undefined;
 
-  private supabaseUrl: string;
-  private supabaseAnonKey: string;
+  private readonly supabaseUrl: string;
+  private readonly supabaseAnonKey: string;
 
-  constructor(
-    supabaseUrl: string,
-    supabaseAnonKey: string,
-  ) {
+  constructor(supabaseUrl: string, supabaseAnonKey: string) {
     this.supabaseUrl = supabaseUrl;
     this.supabaseAnonKey = supabaseAnonKey;
     this.initializeClient();
   }
 
   private initializeClient(): void {
-
-    console.log('Initializing Supabase Client with:', {
+    console.log("Initializing Supabase Client with:", {
       url: this.supabaseUrl,
-      keyConfigured: !!this.supabaseAnonKey
+      keyConfigured: !!this.supabaseAnonKey,
     });
 
     if (!this.supabaseUrl || !this.supabaseAnonKey) {
       throw new Error(
-        'SUPABASE_URL and SUPABASE_ANON_KEY must be defined in environment variables',
+        "SUPABASE_URL and SUPABASE_ANON_KEY must be defined in environment variables",
       );
     }
 
@@ -48,7 +47,7 @@ export class SupabaseClient {
 
       if (!supabaseUrl || !supabaseServiceRoleKey) {
         throw new Error(
-          'SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be defined in environment variables',
+          "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be defined in environment variables",
         );
       }
 
