@@ -31,9 +31,7 @@ export class SupabaseClient {
     });
 
     if (!this.supabaseUrl || !this.supabaseAnonKey) {
-      throw new Error(
-        "SUPABASE_URL and SUPABASE_ANON_KEY must be defined in environment variables",
-      );
+      throw new Error("SUPABASE_URL and SUPABASE_ANON_KEY must be defined");
     }
 
     this.client = createClient(this.supabaseUrl, this.supabaseAnonKey);
