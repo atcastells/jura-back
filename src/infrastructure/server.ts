@@ -12,6 +12,7 @@ dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGO_URI;
+const MONGODB_DB = process.env.MONGO_DB;
 
 if (!MONGODB_URI) {
   throw new Error('MONGO_URI environment variable is required');
@@ -39,7 +40,7 @@ async function startServer() {
     // Register and connect to MongoDB
     const dbConnection = Container.get(MongoDBAdapter);
     Container.set('DatabaseConnection', dbConnection);
-    await dbConnection.connect(MONGODB_URI!, 'scora');
+    await dbConnection.connect(MONGODB_URI!, MONGODB_DB!);
 
     // Create Express app
     const app = createApp();

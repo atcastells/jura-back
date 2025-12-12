@@ -19,16 +19,7 @@ services:
       - CHOKIDAR_USEPOLLING=true
     # Ensure dependencies in the named node_modules volume are up to date
     # This installs based on package-lock.json on each container start, then runs nodemon
-    command: ["sh", "-lc", "npm ci && npx nodemon --legacy-watch --watch src --ext ts,json --exec ts-node src/infrastructure/api/server.ts"]
-
-  mongo:
-    image: mongo:7
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-    environment:
-      - MONGO_INITDB_DATABASE=scrim-planner
+    command: [ "sh", "-lc", "npm ci && npx nodemon --legacy-watch --watch src --ext ts,json --exec ts-node src/infrastructure/api/server.ts" ]
 
   ngrok:
     image: ngrok/ngrok:latest
