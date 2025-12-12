@@ -49,7 +49,11 @@ try {
     Container.get(ConversationAgentFactory),
   );
 
-  const supabaseClient = new SupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const supabaseClient = new SupabaseClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_ANON_KEY!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
 
   // Register external services
   Container.set(SupabaseClient, supabaseClient);
