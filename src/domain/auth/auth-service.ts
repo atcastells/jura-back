@@ -3,11 +3,12 @@ import { User } from "../user/user.js";
 import { SupabaseClient } from "../../adapters/outbound/authentication/supabase-client.js";
 import { HttpError } from "../../adapters/inbound/http/errors/http-error.js";
 import { AuthRepository } from "./auth-repository.js";
+import { AUTH_REPOSITORY } from "../../infrastructure/constants.js";
 
 @Service()
 export class AuthService {
   constructor(
-    @Inject("AuthRepository")
+    @Inject(AUTH_REPOSITORY)
     private readonly authRepository: AuthRepository,
     @Inject(() => SupabaseClient)
     private readonly supabaseClient: SupabaseClient,
