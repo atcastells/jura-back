@@ -2,13 +2,14 @@ import { Service, Inject } from "typedi";
 import { User } from "../user/user.js";
 import { SupabaseClient } from "../../adapters/outbound/authentication/supabase-client.js";
 import { HttpError } from "../../adapters/inbound/http/errors/http-error.js";
-import { MongoUserRepository } from "../../adapters/outbound/persistence/mongodb/mongo-user-repository.js";
+import { AuthRepository } from "./auth-repository.js";
+import { AUTH_REPOSITORY } from "../../infrastructure/constants.js";
 
 @Service()
 export class AuthService {
   constructor(
-    @Inject(() => MongoUserRepository)
-    private readonly authRepository: MongoUserRepository,
+    @Inject(AUTH_REPOSITORY)
+    private readonly authRepository: AuthRepository,
     @Inject(() => SupabaseClient)
     private readonly supabaseClient: SupabaseClient,
   ) {}

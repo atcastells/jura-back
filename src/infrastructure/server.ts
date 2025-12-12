@@ -9,6 +9,7 @@ import { ConversationAgentFactory } from "../adapters/inbound/primary/agents/con
 import { SupabaseClient } from "../adapters/outbound/authentication/supabase-client.js";
 import { ToolRegistry } from "../adapters/outbound/external-services/tools/tool-registry.js";
 import { MongoUserRepository } from "../adapters/outbound/persistence/mongodb/mongo-user-repository.js";
+import { AUTH_REPOSITORY } from "./constants.js";
 
 dotenv.config();
 
@@ -56,7 +57,7 @@ try {
 
   // Register Repositories
   const mongoUserRepository = Container.get(MongoUserRepository);
-  Container.set("AuthRepository", mongoUserRepository);
+  Container.set(AUTH_REPOSITORY, mongoUserRepository);
 
   // Create Express app
   const app = await createApp();
