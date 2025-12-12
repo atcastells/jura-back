@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { HttpError } from "../errors/http-error.js";
+import { ValidationError } from "./validate-request.js";
 
 export const errorHandler = (
   error: Error,
@@ -8,6 +9,15 @@ export const errorHandler = (
   _next: NextFunction,
 ): void => {
   console.error("Error:", error);
+
+  if (error instanceof ValidationError) {
+    response.status(400).json({
+      success: false,
+      message: error.message,
+      errors: error.errors,
+    });
+    return;
+  }
 
   if (error.name === "ValidationError") {
     response.status(400).json({
