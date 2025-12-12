@@ -75,7 +75,7 @@ export class AuthService {
     // Fetch full user profile from MongoDB
     const user = await this.authRepository.findByAuthId(data.user.id);
     if (!user) {
-      throw new Error("User profile not found");
+      throw new HttpError(404, "User profile not found");
     }
 
     return { token: data.session.access_token, user };
