@@ -9,15 +9,26 @@ import { ConversationAgentFactory } from "../adapters/inbound/primary/agents/con
 import { SupabaseClient } from "../adapters/outbound/authentication/supabase-client.js";
 import { ToolRegistry } from "../adapters/outbound/external-services/tools/tool-registry.js";
 import { MongoUserRepository } from "../adapters/outbound/persistence/mongodb/mongo-user-repository.js";
+import { AUTH_REPOSITORY } from "./constants.js";
 
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGO_URI;
 const MONGODB_DB = process.env.MONGO_DB;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
 if (!MONGODB_URI) {
   throw new Error("MONGO_URI environment variable is required");
+}
+
+if (!SUPABASE_URL) {
+  throw new Error("SUPABASE_URL environment variable is required");
+}
+
+if (!SUPABASE_ANON_KEY) {
+  throw new Error("SUPABASE_ANON_KEY environment variable is required");
 }
 
 try {
@@ -57,7 +68,7 @@ try {
 
   // Register Repositories
   const mongoUserRepository = Container.get(MongoUserRepository);
-  Container.set("AuthRepository", mongoUserRepository);
+  Container.set(AUTH_REPOSITORY, mongoUserRepository);
 
   // Create Express app
   const app = await createApp();

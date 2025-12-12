@@ -2,13 +2,14 @@ import { Service, Inject } from "typedi";
 import { User } from "../user/user.js";
 import { SupabaseClient } from "../../adapters/outbound/authentication/supabase-client.js";
 import { HttpError } from "../../adapters/inbound/http/errors/http-error.js";
-import { MongoUserRepository } from "../../adapters/outbound/persistence/mongodb/mongo-user-repository.js";
+import { AuthRepository } from "./auth-repository.js";
+import { AUTH_REPOSITORY } from "../../infrastructure/constants.js";
 
 @Service()
 export class AuthService {
   constructor(
-    @Inject(() => MongoUserRepository)
-    private readonly authRepository: MongoUserRepository,
+    @Inject(AUTH_REPOSITORY)
+    private readonly authRepository: AuthRepository,
     @Inject(() => SupabaseClient)
     private readonly supabaseClient: SupabaseClient,
   ) {}
@@ -18,9 +19,17 @@ export class AuthService {
     password: string,
     organizationId: string,
   ): Promise<User> {
+    // 1. Check if user already exists in MongoDB to prevent race condition
+    // Note: For complete protection against concurrent requests, consider adding
+    // a unique index on the email field in MongoDB
+    const existingUser = await this.authRepository.findByEmail(email);
+    if (existingUser) {
+      throw new HttpError(409, "User with this email already exists");
+    }
+
     const supabase = this.supabaseClient.getClient();
 
-    // 1. Create user in Supabase
+    // 2. Create user in Supabase
     console.log("Attempting Supabase signup for:", email);
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -35,16 +44,18 @@ export class AuthService {
 
     if (!data.user) {
       console.error("Supabase signup succeeded but no user returned:", data);
-      throw new Error("Supabase signup failed: No user data");
+      throw new HttpError(500, "Supabase signup failed: No user data");
     }
 
-    // 2. Check if user profile already exists (idempotency/edge case)
-    const existingUser = await this.authRepository.findByAuthId(data.user.id);
-    if (existingUser) {
-      return existingUser;
+    // 3. Check if user profile already exists (idempotency/edge case)
+    const existingAuthUser = await this.authRepository.findByAuthId(
+      data.user.id,
+    );
+    if (existingAuthUser) {
+      return existingAuthUser;
     }
 
-    // 3. Create user profile in MongoDB
+    // 4. Create user profile in MongoDB
     const user: Omit<User, "id"> = {
       email,
       authId: data.user.id,
@@ -75,7 +86,7 @@ export class AuthService {
     // Fetch full user profile from MongoDB
     const user = await this.authRepository.findByAuthId(data.user.id);
     if (!user) {
-      throw new Error("User profile not found");
+      throw new HttpError(404, "User profile not found");
     }
 
     return { token: data.session.access_token, user };
