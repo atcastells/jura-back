@@ -6,7 +6,9 @@ import { Container } from 'typedi';
 import { GeminiAdapter } from '../adapters/outbound/external-services/GeminiAdapter';
 import { LangChainGeminiAdapter } from '../adapters/outbound/external-services/LangChainGeminiAdapter';
 import { ConversationAgentFactory } from '../adapters/inbound/primary/agents/ConversationAgentFactory';
+import { SupabaseClient } from '../adapters/outbound/authentication/SupabaseClient';
 import { ToolRegistry } from '../adapters/outbound/external-services/tools/ToolRegistry';
+import { MongoUserRepository } from '../adapters/outbound/persistence/mongodb/MongoUserRepository';
 
 dotenv.config();
 
@@ -35,12 +37,25 @@ async function startServer() {
     Container.set(ToolRegistry, Container.get(ToolRegistry));
     Container.set(ConversationAgentFactory, Container.get(ConversationAgentFactory));
 
+    const supabaseClient = new SupabaseClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_ANON_KEY!,
+    );
+
+    // Register external services
+    Container.set(SupabaseClient, supabaseClient);
+
     console.log('AI Service initialized with LangChain Gemini adapter');
+    console.log('Supabase Client initialized');
 
     // Register and connect to MongoDB
     const dbConnection = Container.get(MongoDBAdapter);
     Container.set('DatabaseConnection', dbConnection);
     await dbConnection.connect(MONGODB_URI!, MONGODB_DB!);
+
+    // Register Repositories
+    const mongoUserRepository = Container.get(MongoUserRepository);
+    Container.set('AuthRepository', mongoUserRepository);
 
     // Create Express app
     const app = await createApp();

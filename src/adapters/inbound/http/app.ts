@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import YAML from 'yaml';
 import { errorHandler } from './middlewares/errorHandler';
+import { authRouter } from './routes/authRoutes';
 
 // Load OpenAPI spec
 const openApiPath = path.join(__dirname, '../../../infrastructure/openapi.yaml');
@@ -34,6 +35,9 @@ export const createApp = async (): Promise<Application> => {
     }
     next();
   });
+
+  // Routes
+  app.use('/auth', authRouter);
 
   // API Documentation with Scalar (dynamic import for ESM compatibility)
   const { apiReference } = await import('@scalar/express-api-reference');

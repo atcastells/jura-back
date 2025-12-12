@@ -1,95 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-
-/**
- * User payload interface - can be extended based on your needs
- */
-export interface UserPayload {
-  id: string;
-  email?: string;
-  role?: string;
-  [key: string]: unknown; // Allow additional fields
-}
+import { Container } from 'typedi';
+import { AuthService } from '../../../../domain/auth/AuthService';
+import { User } from '../../../../domain/user/User';
 
 /**
  * Extended Express Request with authenticated user
  */
 export interface AuthenticatedRequest extends Request {
-  user?: UserPayload;
+  user?: User;
 }
 
 /**
- * Strategy interface for token verification
- * Implement this to use different authentication providers
- */
-export interface AuthStrategy {
-  /**
-   * Verify a token and return the user payload
-   * @param token - The token to verify
-   * @returns User payload or null if verification fails
-   */
-  verify(token: string): Promise<UserPayload | null>;
-}
-
-/**
- * Generic JWT authentication strategy
- * Uses JWT secret from environment variable
- */
-export class JWTAuthStrategy implements AuthStrategy {
-  private readonly jwtSecret: string;
-
-  constructor(jwtSecretEnvVar = 'JWT_SECRET') {
-    const secret = process.env[jwtSecretEnvVar];
-    
-    if (!secret) {
-      throw new Error(`${jwtSecretEnvVar} environment variable not configured`);
-    }
-    
-    this.jwtSecret = secret;
-  }
-
-  async verify(token: string): Promise<UserPayload | null> {
-    try {
-      const decoded = jwt.verify(token, this.jwtSecret) as {
-        sub?: string;
-        id?: string;
-        email?: string;
-        role?: string;
-        [key: string]: unknown;
-      };
-
-      // Extract user ID from standard JWT claims
-      const userId = decoded.sub || decoded.id;
-      
-      if (!userId || typeof userId !== 'string') {
-        return null;
-      }
-
-      return {
-        id: userId,
-        email: decoded.email,
-        role: decoded.role,
-        ...decoded, // Include any additional claims
-      };
-    } catch (error) {
-      if (error instanceof jwt.JsonWebTokenError || error instanceof jwt.TokenExpiredError) {
-        return null;
-      }
-      throw error;
-    }
-  }
-}
-
-/**
- * Generic authentication middleware
- * Can be configured with any AuthStrategy implementation
+ * Authentication middleware using AuthService
  */
 export class AuthMiddleware {
-  constructor(private readonly authStrategy: AuthStrategy) {}
-
   /**
    * Middleware to verify authentication token
-   * Extracts the token from Authorization header and verifies it using the configured strategy
+   * Extracts the token from Authorization header and validates it using AuthService
    */
   authenticate() {
     return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -111,11 +38,12 @@ export class AuthMiddleware {
         }
 
         const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+        const authService = Container.get(AuthService);
 
-        // Verify token using the configured strategy
-        const userPayload = await this.authStrategy.verify(token);
+        // Verify token using AuthService
+        const user = await authService.validateToken(token);
 
-        if (!userPayload) {
+        if (!user) {
           res.status(401).json({
             success: false,
             message: 'Invalid or expired authentication token',
@@ -124,19 +52,14 @@ export class AuthMiddleware {
         }
 
         // Attach user payload to request
-        (req as AuthenticatedRequest).user = userPayload;
+        (req as AuthenticatedRequest).user = user;
 
         next();
       } catch (error) {
         console.error('Authentication error:', error);
-
-        // Generic error fallback with more details in development
-        res.status(500).json({
+        res.status(401).json({
           success: false,
-          message: 'Authentication error',
-          ...(process.env.NODE_ENV === 'development' && error instanceof Error
-            ? { error: error.message }
-            : {}),
+          message: 'Authentication failed'
         });
       }
     };
@@ -144,6 +67,7 @@ export class AuthMiddleware {
 
   /**
    * Middleware to check if user has required role
+   * Note: Current User model might not have 'role' yet, so we cast to any for now
    */
   requireRole(allowedRoles: string[]) {
     return (req: Request, res: Response, next: NextFunction): void => {
@@ -157,7 +81,10 @@ export class AuthMiddleware {
         return;
       }
 
-      if (!authReq.user.role || !allowedRoles.includes(authReq.user.role)) {
+      // TODO: Update User interface to include role
+      const userRole = (authReq.user as any).role;
+
+      if (!userRole || !allowedRoles.includes(userRole)) {
         res.status(403).json({
           success: false,
           message: 'Insufficient permissions',
@@ -184,12 +111,13 @@ export class AuthMiddleware {
         }
 
         const token = authHeader.substring(7);
+        const authService = Container.get(AuthService);
 
-        // Verify token using the configured strategy
-        const userPayload = await this.authStrategy.verify(token);
+        // Verify token using AuthService
+        const user = await authService.validateToken(token);
 
-        if (userPayload) {
-          (req as AuthenticatedRequest).user = userPayload;
+        if (user) {
+          (req as AuthenticatedRequest).user = user;
         }
 
         next();
@@ -200,3 +128,6 @@ export class AuthMiddleware {
     };
   }
 }
+
+// Export a default instance for convenience
+export const authMiddleware = new AuthMiddleware();

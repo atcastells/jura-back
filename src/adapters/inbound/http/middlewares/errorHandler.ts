@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { HttpError } from '../errors/HttpError';
 
 export const errorHandler = (
   err: Error,
@@ -20,6 +21,14 @@ export const errorHandler = (
     res.status(400).json({
       success: false,
       message: 'Invalid ID format',
+    });
+    return;
+  }
+
+  if (err instanceof HttpError) {
+    res.status(err.status).json({
+      success: false,
+      message: err.message,
     });
     return;
   }
