@@ -3,6 +3,7 @@ import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import prettierPlugin from 'eslint-plugin-prettier';
 import prettierConfig from 'eslint-config-prettier';
+import unicornPlugin from 'eslint-plugin-unicorn';
 
 export default [
   js.configs.recommended,
@@ -28,10 +29,12 @@ export default [
     plugins: {
       '@typescript-eslint': tsPlugin,
       prettier: prettierPlugin,
+      unicorn: unicornPlugin,
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
       ...prettierConfig.rules,
+      ...unicornPlugin.configs.recommended.rules,
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': [
@@ -64,10 +67,12 @@ export default [
     plugins: {
       '@typescript-eslint': tsPlugin,
       prettier: prettierPlugin,
+      unicorn: unicornPlugin,
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
       ...prettierConfig.rules,
+      ...unicornPlugin.configs.recommended.rules,
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': [

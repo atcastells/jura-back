@@ -1,12 +1,16 @@
-import { BaseChatModel, type BaseChatModelCallOptions, type BindToolsInput } from '@langchain/core/language_models/chat_models';
-import { BaseMessage, AIMessage } from '@langchain/core/messages';
-import { ChatResult, ChatGeneration } from '@langchain/core/outputs';
-import type { CallbackManagerForLLMRun } from '@langchain/core/callbacks/manager';
-import type { BaseLanguageModelInput } from '@langchain/core/language_models/base';
-import { AIMessageChunk } from '@langchain/core/messages';
-import type { Runnable } from '@langchain/core/runnables';
-import { GeminiAdapter } from './GeminiAdapter';
-import { Service } from 'typedi';
+import {
+  BaseChatModel,
+  type BaseChatModelCallOptions,
+  type BindToolsInput,
+} from "@langchain/core/language_models/chat_models";
+import { BaseMessage, AIMessage } from "@langchain/core/messages";
+import { ChatResult, ChatGeneration } from "@langchain/core/outputs";
+import type { CallbackManagerForLLMRun } from "@langchain/core/callbacks/manager";
+import type { BaseLanguageModelInput } from "@langchain/core/language_models/base";
+import { AIMessageChunk } from "@langchain/core/messages";
+import type { Runnable } from "@langchain/core/runnables";
+import { GeminiAdapter } from "./gemini-adapter.js";
+import { Service } from "typedi";
 
 export enum MessageType {
   AI = "ai",
@@ -17,9 +21,11 @@ export enum MessageType {
   Assistant = "Assistant",
 }
 
-
 @Service()
 export class LangChainGeminiAdapter extends BaseChatModel {
+  private _boundTools?: BindToolsInput[];
+  private _boundKwargs?: Partial<BaseChatModelCallOptions>;
+
   constructor(private adapter: GeminiAdapter) {
     super({});
   }
@@ -28,7 +34,7 @@ export class LangChainGeminiAdapter extends BaseChatModel {
    * Required by LangChain - returns the type identifier for this model
    */
   _llmType(): string {
-    return 'gemini-adapter';
+    return "gemini-adapter";
   }
 
   /**
@@ -39,7 +45,7 @@ export class LangChainGeminiAdapter extends BaseChatModel {
   async _generate(
     messages: BaseMessage[],
     _options?: Record<string, unknown>,
-    _runManager?: CallbackManagerForLLMRun
+    _runManager?: CallbackManagerForLLMRun,
   ): Promise<ChatResult> {
     try {
       // Convert LangChain messages to a single prompt string
@@ -62,7 +68,7 @@ export class LangChainGeminiAdapter extends BaseChatModel {
       if (error instanceof Error) {
         throw new Error(`LangChain Gemini generation failed: ${error.message}`);
       }
-      throw new Error('Unknown LangChain Gemini generation error');
+      throw new Error("Unknown LangChain Gemini generation error");
     }
   }
 
@@ -75,29 +81,43 @@ export class LangChainGeminiAdapter extends BaseChatModel {
       .map((message) => {
         const role = message.type;
         const content = message.content;
-        
-        if (role === MessageType.Human || role === MessageType.User) {
-          return `User: ${content}`;
-        } else if (role === MessageType.AI || role === MessageType.Assistant) {
-          return `Assistant: ${content}`;
-        } else if (role === MessageType.System) {
-          return `System: ${content}`;
+
+        switch (role) {
+          case MessageType.Human:
+          case MessageType.User: {
+            return `User: ${content}`;
+          }
+          case MessageType.AI:
+          case MessageType.Assistant: {
+            return `Assistant: ${content}`;
+          }
+          case MessageType.System: {
+            return `System: ${content}`;
+          }
+          // No default
         }
         return String(content);
       })
-      .join('\n\n');
+      .join("\n\n");
   }
 
   bindTools(
     tools: BindToolsInput[],
-    kwargs?: Partial<BaseChatModelCallOptions>
-  ): Runnable<BaseLanguageModelInput, AIMessageChunk, BaseChatModelCallOptions> {
+    kwargs?: Partial<BaseChatModelCallOptions>,
+  ): Runnable<
+    BaseLanguageModelInput,
+    AIMessageChunk,
+    BaseChatModelCallOptions
+  > {
     const boundModel = new LangChainGeminiAdapter(this.adapter);
-    
-    (boundModel as any)._boundTools = tools;
-    (boundModel as any)._boundKwargs = kwargs;
-    
-    return boundModel as unknown as Runnable<BaseLanguageModelInput, AIMessageChunk, BaseChatModelCallOptions>;
-  }
 
+    boundModel._boundTools = tools;
+    boundModel._boundKwargs = kwargs;
+
+    return boundModel as unknown as Runnable<
+      BaseLanguageModelInput,
+      AIMessageChunk,
+      BaseChatModelCallOptions
+    >;
+  }
 }

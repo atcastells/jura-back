@@ -2,7 +2,7 @@
   "watch": ["src"],
   "ext": "ts,json",
   "ignore": ["src/**/*.test.ts", "node_modules"],
-  "exec": "ts-node src/infrastructure/server.ts",
+  "exec": "npx tsx src/infrastructure/server.ts",
   "legacyWatch": true,
   "delay": 1000
 }
