@@ -18,9 +18,15 @@ export class AuthService {
     password: string,
     organizationId: string,
   ): Promise<User> {
+    // 1. Check if user already exists in MongoDB to prevent race condition
+    const existingUser = await this.authRepository.findByEmail(email);
+    if (existingUser) {
+      throw new HttpError(409, "User with this email already exists");
+    }
+
     const supabase = this.supabaseClient.getClient();
 
-    // 1. Create user in Supabase
+    // 2. Create user in Supabase
     console.log("Attempting Supabase signup for:", email);
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -38,13 +44,15 @@ export class AuthService {
       throw new Error("Supabase signup failed: No user data");
     }
 
-    // 2. Check if user profile already exists (idempotency/edge case)
-    const existingUser = await this.authRepository.findByAuthId(data.user.id);
-    if (existingUser) {
-      return existingUser;
+    // 3. Check if user profile already exists (idempotency/edge case)
+    const existingAuthUser = await this.authRepository.findByAuthId(
+      data.user.id,
+    );
+    if (existingAuthUser) {
+      return existingAuthUser;
     }
 
-    // 3. Create user profile in MongoDB
+    // 4. Create user profile in MongoDB
     const user: Omit<User, "id"> = {
       email,
       authId: data.user.id,
