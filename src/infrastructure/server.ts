@@ -15,9 +15,19 @@ dotenv.config();
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGO_URI;
 const MONGODB_DB = process.env.MONGO_DB;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
 if (!MONGODB_URI) {
   throw new Error("MONGO_URI environment variable is required");
+}
+
+if (!SUPABASE_URL) {
+  throw new Error("SUPABASE_URL environment variable is required");
+}
+
+if (!SUPABASE_ANON_KEY) {
+  throw new Error("SUPABASE_ANON_KEY environment variable is required");
 }
 
 try {
@@ -38,10 +48,7 @@ try {
     Container.get(ConversationAgentFactory),
   );
 
-  const supabaseClient = new SupabaseClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_ANON_KEY!,
-  );
+  const supabaseClient = new SupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // Register external services
   Container.set(SupabaseClient, supabaseClient);
