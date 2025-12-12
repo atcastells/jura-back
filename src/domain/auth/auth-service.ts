@@ -35,7 +35,7 @@ export class AuthService {
 
     if (!data.user) {
       console.error("Supabase signup succeeded but no user returned:", data);
-      throw new Error("Supabase signup failed: No user data");
+      throw new HttpError(500, "Supabase signup failed: No user data");
     }
 
     // 2. Check if user profile already exists (idempotency/edge case)
@@ -75,7 +75,7 @@ export class AuthService {
     // Fetch full user profile from MongoDB
     const user = await this.authRepository.findByAuthId(data.user.id);
     if (!user) {
-      throw new Error("User profile not found");
+      throw new HttpError(404, "User profile not found");
     }
 
     return { token: data.session.access_token, user };
