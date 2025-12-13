@@ -111,7 +111,7 @@ describe("Chat With Agent", () => {
         userId: "user-1",
         message: "hello",
       }),
-    ).rejects.toThrow("Agente no encontrado");
+    ).rejects.toThrow("Agent not found");
   });
 
   it("should throw error if unauthorized access to private agent", async () => {
