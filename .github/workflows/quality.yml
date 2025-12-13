@@ -11,7 +11,7 @@ on:
       - develop
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
   checks: write
 
@@ -27,6 +27,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.head_ref }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -48,7 +51,25 @@ jobs:
         run: pnpm lint
 
       - name: Format check
+        id: format-check
+        continue-on-error: true
         run: pnpm exec prettier --check "**/*.{ts,js,json,md,yml,yaml}"
+
+      - name: Auto-fix formatting
+        if: steps.format-check.outcome == 'failure' && github.event_name == 'pull_request'
+        run: |
+          pnpm exec prettier --write "**/*.{ts,js,json,md,yml,yaml}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -u
+          if ! git diff --staged --quiet; then
+            git commit -m "style: auto-fix formatting issues"
+            git push
+          fi
+
+      - name: Fail if formatting was needed
+        if: steps.format-check.outcome == 'failure' && github.event_name != 'pull_request'
+        run: exit 1
 
       - name: Build
         run: pnpm build
