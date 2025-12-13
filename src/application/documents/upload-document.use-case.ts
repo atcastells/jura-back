@@ -23,7 +23,7 @@ export class UploadDocumentUseCase {
   async execute(
     userId: string,
     file: MulterFile,
-    category: Document["category"] = "other",
+    category: Document["category"],
   ): Promise<Document> {
     // 1. Upload to Supabase
     const { path, publicUrl } = await this.storageAdapter.uploadFile(

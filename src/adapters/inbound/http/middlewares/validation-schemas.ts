@@ -32,17 +32,15 @@ export const signinSchema = z.object({
  * Validation schema for document upload endpoint
  */
 export const uploadDocumentSchema = z.object({
-  category: z
-    .enum([
-      "resume",
-      "cover_letter",
-      "portfolio",
-      "certification",
-      "transcript",
-      "reference",
-      "other",
-    ])
-    .optional(),
+  category: z.enum([
+    "resume",
+    "cover_letter",
+    "portfolio",
+    "certification",
+    "transcript",
+    "reference",
+    "other",
+  ]),
 });
 
 /**

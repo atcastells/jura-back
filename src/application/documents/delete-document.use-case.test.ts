@@ -2,7 +2,6 @@ import { DeleteDocumentUseCase } from "./delete-document.use-case.js";
 import { SupabaseStorageAdapter } from "../../adapters/outbound/external-services/supabase/storage-service.js";
 import { DocumentRepository } from "../../domain/ports/outbound/document-repository.js";
 import { Document } from "../../domain/entities/document.js";
-import { HttpError } from "../../adapters/inbound/http/errors/http-error.js";
 
 describe("DeleteDocumentUseCase", () => {
   let useCase: DeleteDocumentUseCase;
@@ -68,9 +67,6 @@ describe("DeleteDocumentUseCase", () => {
       // eslint-disable-next-line unicorn/no-useless-undefined
       mockDocumentRepository.findById.mockResolvedValue(undefined);
 
-      await expect(useCase.execute(documentId, userId)).rejects.toThrow(
-        HttpError,
-      );
       await expect(useCase.execute(documentId, userId)).rejects.toMatchObject({
         status: 404,
         message: "Document not found",
@@ -85,9 +81,6 @@ describe("DeleteDocumentUseCase", () => {
 
       mockDocumentRepository.findById.mockResolvedValue(mockDocument);
 
-      await expect(
-        useCase.execute(documentId, unauthorizedUserId),
-      ).rejects.toThrow(HttpError);
       await expect(
         useCase.execute(documentId, unauthorizedUserId),
       ).rejects.toMatchObject({

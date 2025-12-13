@@ -80,39 +80,6 @@ describe("UploadDocumentUseCase", () => {
       expect(result).toEqual(mockSavedDocument);
     });
 
-    it("should use 'other' as default category", async () => {
-      const userId = "user123";
-      const mockUploadResult = {
-        path: "1234567890-test.pdf",
-        publicUrl: "https://example.com/storage/documents/1234567890-test.pdf",
-      };
-      const mockSavedDocument: Document = {
-        id: "doc123",
-        userId,
-        category: "other",
-        originalName: mockFile.originalname,
-        mimeType: mockFile.mimetype,
-        size: mockFile.size,
-        provider: "supabase",
-        path: mockUploadResult.path,
-        publicUrl: mockUploadResult.publicUrl,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      mockStorageAdapter.uploadFile.mockResolvedValue(mockUploadResult);
-      mockDocumentRepository.save.mockResolvedValue(mockSavedDocument);
-
-      const result = await useCase.execute(userId, mockFile);
-
-      expect(mockDocumentRepository.save).toHaveBeenCalledWith(
-        expect.objectContaining({
-          category: "other",
-        }),
-      );
-      expect(result.category).toBe("other");
-    });
-
     it("should throw error when storage upload fails", async () => {
       const userId = "user123";
       const category: DocumentCategory = "resume";

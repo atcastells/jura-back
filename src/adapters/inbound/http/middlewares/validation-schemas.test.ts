@@ -137,10 +137,9 @@ describe("Validation Schemas", () => {
       }
     });
 
-    it("should accept missing category (optional)", () => {
-      const validData = {};
-      const result = uploadDocumentSchema.safeParse(validData);
-      expect(result.success).toBe(true);
+    it("should reject missing category (required)", () => {
+      const invalidData = {};
+      testInvalid(uploadDocumentSchema, invalidData);
     });
 
     it("should reject invalid category", () => {

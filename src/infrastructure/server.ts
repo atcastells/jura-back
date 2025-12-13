@@ -22,6 +22,11 @@ try {
   if (!config.supabase.anonKey) {
     throw new Error("SUPABASE_ANON_KEY environment variable is required");
   }
+  if (!config.supabase.serviceRoleKey) {
+    throw new Error(
+      "SUPABASE_SERVICE_ROLE_KEY environment variable is required",
+    );
+  }
 
   // Register AI services in the DI container
   // First register the base GeminiAdapter
