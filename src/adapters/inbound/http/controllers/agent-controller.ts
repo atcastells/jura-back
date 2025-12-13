@@ -49,14 +49,17 @@ export class AgentController {
     private readonly getThreadHistoryUseCase: GetThreadHistoryUseCase,
   ) {}
 
-  async createAgent(request: Request, response: Response): Promise<void> {
-    const authRequest = request as AuthenticatedRequest;
-    if (!authRequest.user) {
-      response.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-
+  async createAgent(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
+      const authRequest = request as AuthenticatedRequest;
+      if (!authRequest.user) {
+        throw new HttpError(401, "Unauthorized");
+      }
+
       const input = createAgentSchema.parse(request.body);
       // Map input to AgentConfiguration structure expected by use case
       const useCaseInput = {
@@ -75,38 +78,47 @@ export class AgentController {
       );
       response.status(201).json(agent);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        response.status(400).json({ error: error.issues });
-      } else {
-        console.error("Error creating agent:", error);
-        response.status(500).json({ error: "Internal Server Error" });
+      next(error);
+    }
+  }
+
+  async listAgents(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const authRequest = request as AuthenticatedRequest;
+      if (!authRequest.user) {
+        throw new HttpError(401, "Unauthorized");
       }
+
+      const agents = await this.listAgentsUseCase.execute(authRequest.user.id);
+      response.json(agents);
+    } catch (error) {
+      next(error);
     }
   }
 
-  async listAgents(request: Request, response: Response): Promise<void> {
-    const authRequest = request as AuthenticatedRequest;
-    if (!authRequest.user) {
-      response.status(401).json({ error: "Unauthorized" });
-      return;
+  async getAgent(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const agentId = request.params.id;
+      const agent = await this.getAgentUseCase.execute(agentId);
+
+      if (!agent) {
+        throw new HttpError(404, "Agent not found");
+      }
+
+      // Optional: Add authorization check here if relevant
+
+      response.json(agent);
+    } catch (error) {
+      next(error);
     }
-
-    const agents = await this.listAgentsUseCase.execute(authRequest.user.id);
-    response.json(agents);
-  }
-
-  async getAgent(request: Request, response: Response): Promise<void> {
-    const agentId = request.params.id;
-    const agent = await this.getAgentUseCase.execute(agentId);
-
-    if (!agent) {
-      response.status(404).json({ error: "Agent not found" });
-      return;
-    }
-
-    // Optional: Add authorization check here if relevant
-
-    response.json(agent);
   }
 
   async chatWithAgent(
