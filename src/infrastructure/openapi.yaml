@@ -20,6 +20,8 @@ tags:
     description: AI and agent-related endpoints
   - name: Documents
     description: Document ingestion and management endpoints
+  - name: Agents
+    description: Agent configuration and management endpoints
 
 paths:
   /health:
@@ -197,6 +199,123 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+    get:
+      tags:
+        - Documents
+      summary: List Documents
+      description: Retrieve a list of uploaded documents.
+      operationId: listDocuments
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Document'
+        '401':
+          description: Unauthorized
+    
+  /api/v1/ingest/{id}:
+    delete:
+      tags:
+        - Documents
+      summary: Delete Document
+      description: Delete a specific document by ID.
+      operationId: deleteDocument
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Document ID
+      responses:
+        '200':
+          description: Document deleted successfully
+        '404':
+          description: Document not found
+        '401':
+          description: Unauthorized
+
+  /api/v1/agents:
+    get:
+      tags:
+        - Agents
+      summary: List Agents
+      description: List all agents configured for the current user.
+      operationId: listAgents
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of agents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Agent'
+        '401':
+          description: Unauthorized
+    post:
+      tags:
+        - Agents
+      summary: Create Agent
+      description: Create a new agent configuration.
+      operationId: createAgent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAgentRequest'
+      responses:
+        '201':
+          description: Agent created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+
+  /api/v1/agents/{id}:
+    get:
+      tags:
+        - Agents
+      summary: Get Agent
+      description: Retrieve details of a specific agent.
+      operationId: getAgent
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Application specific Agent ID
+      responses:
+        '200':
+          description: Agent details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+        '404':
+          description: Agent not found
+        '401':
+          description: Unauthorized
 
 components:
   securitySchemes:
@@ -244,3 +363,74 @@ components:
           description: Error code
       required:
         - message
+
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+        originalName:
+          type: string
+        mimeType:
+          type: string
+        size:
+          type: number
+        publicUrl:
+          type: string
+        category:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Agent:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [PRIVATE, PUBLIC]
+        status:
+          type: string
+          enum: [ACTIVE, ARCHIVED]
+        configuration:
+          type: object
+          properties:
+            systemPrompt:
+              type: string
+            tone:
+              type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    
+    CreateAgentRequest:
+      type: object
+      required:
+        - name
+        - type
+        - instructions
+        - tone
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [PRIVATE, PUBLIC]
+        instructions:
+          type: string
+          description: Base system prompt/instructions for the agent
+        tone:
+          type: string
+          description: Voice tone (e.g., Professional, Casual)
