@@ -1,8 +1,9 @@
 import { Service, Inject } from "typedi";
 import { Document } from "../../domain/entities/document.js";
 import { DocumentRepository } from "../../domain/ports/outbound/document-repository.js";
-import { StorageService } from "../../adapters/outbound/external-services/supabase/storage-service.js";
+import { SupabaseStorageAdapter } from "../../adapters/outbound/external-services/supabase/storage-service.js";
 import { DOCUMENT_REPOSITORY } from "../../infrastructure/constants.js";
+import { DOCUMENT_BUCKET_NAME } from "../../adapters/outbound/external-services/supabase/constants.js";
 interface MulterFile {
   buffer: Buffer;
   mimetype: string;
@@ -13,9 +14,10 @@ interface MulterFile {
 @Service()
 export class UploadDocumentUseCase {
   constructor(
-    @Inject(() => StorageService) private storageService: StorageService,
+    @Inject(() => SupabaseStorageAdapter)
+    private readonly storageAdapter: SupabaseStorageAdapter,
     @Inject(DOCUMENT_REPOSITORY)
-    private documentRepository: DocumentRepository,
+    private readonly documentRepository: DocumentRepository,
   ) {}
 
   async execute(
@@ -24,7 +26,10 @@ export class UploadDocumentUseCase {
     category: Document["category"] = "other",
   ): Promise<Document> {
     // 1. Upload to Supabase
-    const publicUrl = await this.storageService.uploadFile(file);
+    const publicUrl = await this.storageAdapter.uploadFile(
+      file,
+      DOCUMENT_BUCKET_NAME,
+    );
 
     // 2. Create Document Entity
     const document: Document = {

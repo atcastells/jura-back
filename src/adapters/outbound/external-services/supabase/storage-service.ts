@@ -2,27 +2,29 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { Service } from "typedi";
 import { config } from "../../../../infrastructure/config.js";
 
-// Define interface locally to avoid 'Express' namespace issues if types aren't global
-interface MulterFile {
+// File interface for upload operations
+export interface UploadFile {
   buffer: Buffer;
   mimetype: string;
   originalname: string;
 }
 
+/**
+ * Supabase Storage Adapter - handles file storage operations with Supabase
+ * This adapter can be used as an outbound port implementation for storage operations
+ */
 @Service()
-export class StorageService {
+export class SupabaseStorageAdapter {
   private supabase: SupabaseClient;
-  private readonly bucketName: string;
 
-  constructor(bucketName: string) {
+  constructor() {
     this.supabase = createClient(config.supabase.url, config.supabase.anonKey);
-    this.bucketName = bucketName;
   }
 
-  async uploadFile(file: MulterFile): Promise<string> {
+  async uploadFile(file: UploadFile, bucketName: string): Promise<string> {
     const fileName = `${Date.now()}-${file.originalname}`;
     const { error } = await this.supabase.storage
-      .from(this.bucketName)
+      .from(bucketName)
       .upload(fileName, file.buffer, {
         contentType: file.mimetype,
         upsert: false,
@@ -34,15 +36,15 @@ export class StorageService {
 
     // Get public URL
     const { data: publicUrlData } = this.supabase.storage
-      .from(this.bucketName)
+      .from(bucketName)
       .getPublicUrl(fileName);
 
     return publicUrlData.publicUrl;
   }
 
-  async deleteFile(path: string): Promise<void> {
+  async deleteFile(path: string, bucketName: string): Promise<void> {
     const { error } = await this.supabase.storage
-      .from(this.bucketName)
+      .from(bucketName)
       .remove([path]);
 
     if (error) {
