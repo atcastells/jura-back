@@ -14,7 +14,12 @@ import { SupabaseClient } from "../adapters/outbound/authentication/supabase-cli
 import { ToolRegistry } from "../adapters/outbound/external-services/tools/tool-registry.js";
 import { MongoUserRepository } from "../adapters/outbound/persistence/mongodb/mongo-user-repository.js";
 import { MongoDocumentRepository } from "../adapters/outbound/persistence/mongodb/mongo-document-repository.js";
-import { AUTH_REPOSITORY, DOCUMENT_REPOSITORY } from "./constants.js";
+import { MongoAgentRepository } from "../adapters/outbound/persistence/mongodb/mongo-agent-repository.js";
+import {
+  AUTH_REPOSITORY,
+  DOCUMENT_REPOSITORY,
+  AGENT_REPOSITORY,
+} from "./constants.js";
 import { config } from "./config.js";
 try {
   // Check required config
@@ -74,6 +79,10 @@ try {
   // Register Document Repository
   const mongoDocumentRepository = Container.get(MongoDocumentRepository);
   Container.set(DOCUMENT_REPOSITORY, mongoDocumentRepository);
+
+  // Register Agent Repository
+  const mongoAgentRepository = Container.get(MongoAgentRepository);
+  Container.set(AGENT_REPOSITORY, mongoAgentRepository);
 
   // Create Express app
   const app = await createApp();
