@@ -1,5 +1,4 @@
 import "reflect-metadata";
-import dotenv from "dotenv";
 import { createApp } from "../adapters/inbound/http/app.js";
 import { MongoDBAdapter } from "../adapters/outbound/persistence/mongodb/mongo-database-adapter.js";
 import { Container } from "typedi";
@@ -9,29 +8,26 @@ import { ConversationAgentFactory } from "../adapters/inbound/primary/agents/con
 import { SupabaseClient } from "../adapters/outbound/authentication/supabase-client.js";
 import { ToolRegistry } from "../adapters/outbound/external-services/tools/tool-registry.js";
 import { MongoUserRepository } from "../adapters/outbound/persistence/mongodb/mongo-user-repository.js";
-import { AUTH_REPOSITORY } from "./constants.js";
-
-dotenv.config();
-
-const PORT = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGO_URI;
-const MONGODB_DB = process.env.MONGO_DB;
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
-
-if (!MONGODB_URI) {
-  throw new Error("MONGO_URI environment variable is required");
-}
-
-if (!SUPABASE_URL) {
-  throw new Error("SUPABASE_URL environment variable is required");
-}
-
-if (!SUPABASE_ANON_KEY) {
-  throw new Error("SUPABASE_ANON_KEY environment variable is required");
-}
-
+import { MongoDocumentRepository } from "../adapters/outbound/persistence/mongodb/mongo-document-repository.js";
+import { AUTH_REPOSITORY, DOCUMENT_REPOSITORY } from "./constants.js";
+import { config } from "./config.js";
 try {
+  // Check required config
+  if (!config.mongo.uri) {
+    throw new Error("MONGO_URI environment variable is required");
+  }
+  if (!config.supabase.url) {
+    throw new Error("SUPABASE_URL environment variable is required");
+  }
+  if (!config.supabase.anonKey) {
+    throw new Error("SUPABASE_ANON_KEY environment variable is required");
+  }
+  if (!config.supabase.serviceRoleKey) {
+    throw new Error(
+      "SUPABASE_SERVICE_ROLE_KEY environment variable is required",
+    );
+  }
+
   // Register AI services in the DI container
   // First register the base GeminiAdapter
   Container.set(GeminiAdapter, Container.get(GeminiAdapter));
@@ -50,9 +46,9 @@ try {
   );
 
   const supabaseClient = new SupabaseClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_ANON_KEY!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    config.supabase.url,
+    config.supabase.anonKey,
+    config.supabase.serviceRoleKey,
   );
 
   // Register external services
@@ -64,18 +60,22 @@ try {
   // Register and connect to MongoDB
   const databaseConnection = Container.get(MongoDBAdapter);
   Container.set("DatabaseConnection", databaseConnection);
-  await databaseConnection.connect(MONGODB_URI, MONGODB_DB!);
+  await databaseConnection.connect(config.mongo.uri, config.mongo.dbName);
 
   // Register Repositories
   const mongoUserRepository = Container.get(MongoUserRepository);
   Container.set(AUTH_REPOSITORY, mongoUserRepository);
 
+  // Register Document Repository
+  const mongoDocumentRepository = Container.get(MongoDocumentRepository);
+  Container.set(DOCUMENT_REPOSITORY, mongoDocumentRepository);
+
   // Create Express app
   const app = await createApp();
 
   // Start server
-  app.listen(PORT, () => {
-    const baseUrl = `http://localhost:${PORT}`;
+  app.listen(config.port, () => {
+    const baseUrl = `http://localhost:${config.port}`;
     console.log("\n");
     console.log("╔══════════════════════════════════════════════════════════╗");
     console.log("║                                                          ║");

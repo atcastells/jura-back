@@ -33,6 +33,7 @@ Server runs at `http://localhost:3000`
 | **Framework** | Express 5 |
 | **Architecture** | Hexagonal (Ports & Adapters) |
 | **Database** | MongoDB Atlas |
+| **Auth** | Supabase |
 | **AI/LLM** | Google Gemini via LangChain |
 | **DI Container** | TypeDI |
 | **API Docs** | Scalar + OpenAPI 3.1 |
@@ -68,7 +69,7 @@ Server runs at `http://localhost:3000`
 - [x] API documentation (Scalar)
 - [x] Health check endpoint
 - [x] CORS configuration
-- [ ] Authentication middleware (JWT)
+- [x] Authentication (Supabase)
 - [ ] Rate limiting
 - [ ] Request validation
 
@@ -131,4 +132,6 @@ See `.env.example` for required variables:
 - `MONGO_URI` - MongoDB Atlas connection string
 - `MONGO_DB` - Database name
 - `GEMINI_API_KEY` - Google Gemini API key
+- `SUPABASE_URL` - Supabase project URL
+- `SUPABASE_ANON_KEY` - Supabase anonymous key
 - `PORT` - Server port (default: 3000)

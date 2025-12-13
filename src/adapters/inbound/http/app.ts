@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import YAML from "yaml";
 import { errorHandler } from "./middlewares/error-handler.js";
 import { authRouter } from "./routes/auth-routes.js";
+import { createIngestRouter } from "./routes/ingest-route.js";
 
 // Load OpenAPI spec
 const __filename = fileURLToPath(import.meta.url);
@@ -48,6 +49,7 @@ export const createApp = async (): Promise<Application> => {
 
   // Routes
   app.use("/auth", authRouter);
+  app.use("/api/v1", createIngestRouter());
 
   // API Documentation with Scalar (dynamic import for ESM compatibility)
   const { apiReference } = await import("@scalar/express-api-reference");
