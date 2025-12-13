@@ -1,13 +1,18 @@
+import "reflect-metadata";
 import { Service, Inject } from "typedi";
-import { Agent, AgentType, AgentStatus } from "../../domain/entities/agent.js";
+import {
+  Agent,
+  AgentType,
+  AgentStatus,
+  AgentConfiguration,
+} from "../../domain/entities/agent.js";
 import { AgentRepository } from "../../domain/ports/outbound/agent-repository.js";
 import { AGENT_REPOSITORY } from "../../infrastructure/constants.js";
 
 interface CreateAgentInput {
   name: string;
   type: AgentType;
-  instructions: string;
-  tone: string;
+  configuration: AgentConfiguration;
 }
 
 @Service()
@@ -24,10 +29,7 @@ export class CreateAgentUseCase {
       name: input.name,
       type: input.type,
       status: AgentStatus.ACTIVE,
-      configuration: {
-        systemPrompt: input.instructions,
-        tone: input.tone,
-      },
+      configuration: input.configuration,
       createdAt: new Date(),
       updatedAt: new Date(),
     };

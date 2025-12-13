@@ -11,6 +11,7 @@ export enum AgentStatus {
 export interface AgentConfiguration {
   systemPrompt: string;
   tone: string;
+  enableThreads: boolean;
   // Future: contextScope, allowedTools, etc.
 }
 

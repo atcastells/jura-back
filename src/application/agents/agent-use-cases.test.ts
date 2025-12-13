@@ -35,30 +35,40 @@ describe("Agent Configuration System", () => {
     const input = {
       name: "Recruiter Bot",
       type: AgentType.PUBLIC,
-      instructions: "Be professional and concise.",
-      tone: "Professional",
+      configuration: {
+        systemPrompt: "Be professional and concise.",
+        tone: "Professional",
+        enableThreads: false,
+      },
     };
     const userId = "user-123";
 
-    mockAgentRepository.save.mockResolvedValue({
+    const expectedAgent = {
       id: "agent-1",
       userId,
-      ...input,
+      name: input.name,
+      type: input.type,
       status: "ACTIVE",
-      configuration: {
-        systemPrompt: input.instructions,
-        tone: input.tone,
-      },
+      configuration: input.configuration,
       createdAt: new Date(),
       updatedAt: new Date(),
-    });
+    };
+
+    // The repository save check usually matches what is returned,
+    // but the use case generates dates/ID before save or allows DB to do it.
+    // In mongo-agent-repo, it receives the object without _id presumably if it's new?
+    // Looking at create-agent-use-case, it sets id="" before save, or repo handles it.
+    // Let's assume repo mocks returning the saved agent.
+    mockAgentRepository.save.mockResolvedValue(expectedAgent);
 
     const result = await createAgentUseCase.execute(userId, input);
 
     expect(result).toBeDefined();
     expect(result.id).toBe("agent-1");
     expect(result.type).toBe(AgentType.PUBLIC);
-    expect(result.configuration.systemPrompt).toBe(input.instructions);
+    expect(result.configuration.systemPrompt).toBe(
+      input.configuration.systemPrompt,
+    );
     expect(mockAgentRepository.save).toHaveBeenCalledTimes(1);
   });
 
@@ -73,6 +83,7 @@ describe("Agent Configuration System", () => {
       configuration: {
         systemPrompt: "test",
         tone: "test",
+        enableThreads: false,
       },
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -95,7 +106,7 @@ describe("Agent Configuration System", () => {
         name: "A1",
         type: AgentType.PUBLIC,
         status: "ACTIVE" as any,
-        configuration: { systemPrompt: "p", tone: "t" },
+        configuration: { systemPrompt: "p", tone: "t", enableThreads: false },
         createdAt: new Date(),
         updatedAt: new Date(),
       },

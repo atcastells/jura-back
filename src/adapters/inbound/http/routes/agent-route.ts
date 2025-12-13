@@ -19,3 +19,15 @@ agentRoutes.get("/", (request, response) =>
 agentRoutes.get("/:id", (request, response) =>
   agentController.getAgent(request, response),
 );
+agentRoutes.post("/:id/chat", (request, response) =>
+  agentController.chatWithAgent(request, response),
+);
+agentRoutes.post("/:id/threads", (request, response) =>
+  agentController.createThread(request, response),
+);
+agentRoutes.get("/:id/threads", (request, response) =>
+  agentController.listThreads(request, response),
+);
+agentRoutes.get("/:id/threads/:threadId", (request, response) =>
+  agentController.getThreadHistory(request, response),
+);
