@@ -2,11 +2,19 @@ import { UploadDocumentUseCase } from "./upload-document.use-case.js";
 import { SupabaseStorageAdapter } from "../../adapters/outbound/external-services/supabase/storage-service.js";
 import { DocumentRepository } from "../../domain/ports/outbound/document-repository.js";
 import { Document, DocumentCategory } from "../../domain/entities/document.js";
+import { DocumentParser } from "../../domain/ports/outbound/document-parser.js";
+import { TextChunker } from "../../domain/services/text-chunker.js";
+import { EmbeddingService } from "../../domain/ports/outbound/embedding-service.js";
+import { VectorStore } from "../../domain/ports/outbound/vector-store.js";
 
 describe("UploadDocumentUseCase", () => {
   let useCase: UploadDocumentUseCase;
   let mockStorageAdapter: jest.Mocked<SupabaseStorageAdapter>;
   let mockDocumentRepository: jest.Mocked<DocumentRepository>;
+  let mockDocumentParser: jest.Mocked<DocumentParser>;
+  let mockTextChunker: jest.Mocked<TextChunker>;
+  let mockEmbeddingService: jest.Mocked<EmbeddingService>;
+  let mockVectorStore: jest.Mocked<VectorStore>;
 
   const mockFile = {
     buffer: Buffer.from("test"),
@@ -28,9 +36,31 @@ describe("UploadDocumentUseCase", () => {
       delete: jest.fn(),
     } as jest.Mocked<DocumentRepository>;
 
+    mockDocumentParser = {
+      parse: jest.fn(),
+    };
+
+    mockTextChunker = {
+      split: jest.fn(),
+    } as unknown as jest.Mocked<TextChunker>; // Class mock needs casting or full mock
+
+    mockEmbeddingService = {
+      embedDocuments: jest.fn(),
+      embedQuery: jest.fn(),
+    };
+
+    mockVectorStore = {
+      addDocuments: jest.fn(),
+      similaritySearch: jest.fn(),
+    };
+
     useCase = new UploadDocumentUseCase(
       mockStorageAdapter,
       mockDocumentRepository,
+      mockDocumentParser,
+      mockTextChunker,
+      mockEmbeddingService,
+      mockVectorStore,
     );
   });
 
