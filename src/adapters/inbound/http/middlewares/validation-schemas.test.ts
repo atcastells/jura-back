@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { signupSchema, signinSchema } from "./validation-schemas";
+import {
+  signupSchema,
+  signinSchema,
+  uploadDocumentSchema,
+} from "./validation-schemas";
 
 const testInvalid = <T extends z.ZodType>(
   schema: T,
@@ -111,6 +115,52 @@ describe("Validation Schemas", () => {
         email: "user@example.com",
       };
       testInvalid(signinSchema, invalidData);
+    });
+  });
+
+  describe("uploadDocumentSchema", () => {
+    it("should validate all valid document categories", () => {
+      const validCategories = [
+        "resume",
+        "cover_letter",
+        "portfolio",
+        "certification",
+        "transcript",
+        "reference",
+        "other",
+      ];
+
+      for (const category of validCategories) {
+        const validData = { category };
+        const result = uploadDocumentSchema.safeParse(validData);
+        expect(result.success).toBe(true);
+      }
+    });
+
+    it("should reject invalid category", () => {
+      const invalidData = {
+        category: "invalid_category",
+      };
+      testInvalid(uploadDocumentSchema, invalidData);
+    });
+
+    it("should reject missing category", () => {
+      const invalidData = {};
+      testInvalid(uploadDocumentSchema, invalidData);
+    });
+
+    it("should reject empty string category", () => {
+      const invalidData = {
+        category: "",
+      };
+      testInvalid(uploadDocumentSchema, invalidData);
+    });
+
+    it("should reject number as category", () => {
+      const invalidData = {
+        category: 123,
+      };
+      testInvalid(uploadDocumentSchema, invalidData);
     });
   });
 });
