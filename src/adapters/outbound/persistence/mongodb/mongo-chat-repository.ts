@@ -1,15 +1,21 @@
 import { Service, Inject } from "typedi";
-import { MongoDatabaseConnection } from "./mongo-database-connection.js";
+import { MongoDBAdapter } from "./mongo-database-adapter.js";
 import { ChatRepository } from "../../../../domain/ports/outbound/chat-repository.js";
 import { Thread } from "../../../../domain/entities/thread.js";
 import { ChatMessage } from "../../../../domain/entities/chat-message.js";
-import { ThreadSchema, ChatMessageSchema } from "./schemas/chat.schema.js";
+import {
+  ThreadSchema,
+  ChatMessageSchema,
+  threadSchema,
+  chatMessageSchema,
+} from "./schemas/chat.schema.js";
+import { ObjectId, WithId, Filter } from "mongodb";
 
 @Service()
 export class MongoChatRepository implements ChatRepository {
   constructor(
-    @Inject(() => MongoDatabaseConnection)
-    private readonly databaseConnection: MongoDatabaseConnection,
+    @Inject(() => MongoDBAdapter)
+    private readonly databaseConnection: MongoDBAdapter,
   ) {}
 
   private get threadCollection() {
@@ -23,8 +29,18 @@ export class MongoChatRepository implements ChatRepository {
   }
 
   async createThread(thread: Thread): Promise<Thread> {
-    await this.threadCollection.insertOne(thread);
-    return thread;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...threadData } = thread;
+
+    // Validate with Zod
+    const validatedData = threadSchema.parse(threadData);
+
+    const result = await this.threadCollection.insertOne(validatedData);
+
+    return {
+      ...validatedData,
+      id: result.insertedId.toString(),
+    };
   }
 
   async getThreads(userId: string, agentId: string): Promise<Thread[]> {
@@ -33,24 +49,42 @@ export class MongoChatRepository implements ChatRepository {
       // eslint-disable-next-line unicorn/no-array-sort
       .sort({ updatedAt: -1 })
       .toArray();
-    return threads;
+    return threads.map((thread) => this.mapThread(thread));
   }
 
   async getThreadById(id: string): Promise<Thread | null> {
-    const thread = await this.threadCollection.findOne({ id });
-    return thread;
+    if (!ObjectId.isValid(id)) return null;
+
+    const thread = await this.threadCollection.findOne({
+      _id: new ObjectId(id),
+    } as Filter<ThreadSchema>);
+
+    if (!thread) return null;
+
+    return this.mapThread(thread);
   }
 
   async saveMessage(message: ChatMessage): Promise<ChatMessage> {
-    await this.messageCollection.insertOne(message);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...messageData } = message;
+
+    // Validate with Zod
+    const validatedData = chatMessageSchema.parse(messageData);
+
+    const result = await this.messageCollection.insertOne(validatedData);
 
     // Update thread updatedAt
-    await this.threadCollection.updateOne(
-      { id: message.threadId },
-      { $set: { updatedAt: new Date() } },
-    );
+    if (ObjectId.isValid(message.threadId)) {
+      await this.threadCollection.updateOne(
+        { _id: new ObjectId(message.threadId) } as Filter<ThreadSchema>,
+        { $set: { updatedAt: new Date() } },
+      );
+    }
 
-    return message;
+    return {
+      ...validatedData,
+      id: result.insertedId.toString(),
+    };
   }
 
   async getMessages(threadId: string): Promise<ChatMessage[]> {
@@ -59,6 +93,22 @@ export class MongoChatRepository implements ChatRepository {
       // eslint-disable-next-line unicorn/no-array-sort
       .sort({ createdAt: 1 }) // Oldest first for chat context
       .toArray();
-    return messages;
+    return messages.map((message) => this.mapMessage(message));
+  }
+
+  private mapThread(thread: WithId<ThreadSchema>): Thread {
+    const { _id, ...rest } = thread;
+    return {
+      id: _id.toString(),
+      ...rest,
+    };
+  }
+
+  private mapMessage(message: WithId<ChatMessageSchema>): ChatMessage {
+    const { _id, ...rest } = message;
+    return {
+      id: _id.toString(),
+      ...rest,
+    };
   }
 }

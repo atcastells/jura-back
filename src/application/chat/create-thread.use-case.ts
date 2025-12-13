@@ -8,6 +8,7 @@ import { AgentRepository } from "../../domain/ports/outbound/agent-repository.js
 import { Thread } from "../../domain/entities/thread.js";
 import { AgentType } from "../../domain/entities/agent.js";
 import { randomUUID } from "node:crypto";
+import { HttpError } from "../../adapters/inbound/http/errors/http-error.js";
 
 @Service()
 export class CreateThreadUseCase {
@@ -24,16 +25,16 @@ export class CreateThreadUseCase {
     title?: string,
   ): Promise<Thread> {
     const agent = await this.agentRepository.findById(agentId);
-    if (!agent) throw new Error("Agent not found");
+    if (!agent) throw new HttpError(404, "Agent not found");
 
     // Access control
     if (agent.type === AgentType.PRIVATE && agent.userId !== userId) {
-      throw new Error("Unauthorized access to private agent");
+      throw new HttpError(403, "Unauthorized access to private agent");
     }
 
     // Feature flag check
     if (!agent.configuration.enableThreads) {
-      throw new Error("Threading is disabled for this agent");
+      throw new HttpError(403, "Threading is disabled for this agent");
     }
 
     const thread: Thread = {

@@ -17,6 +17,7 @@ import { Agent, AgentType } from "../../domain/entities/agent.js";
 import { DocumentChunk } from "../../domain/entities/document-chunk.js";
 import { ChatRole } from "../../domain/entities/chat-message.js";
 import { randomUUID } from "node:crypto";
+import { HttpError } from "../../adapters/inbound/http/errors/http-error.js";
 
 export interface ChatWithAgentInput {
   agentId: string;
@@ -44,11 +45,11 @@ export class ChatWithAgentUseCase {
     // 1. Retrieve and Validate Agent
     const agent = await this.agentRepository.findById(agentId);
     if (!agent) {
-      throw new Error("Agente no encontrado");
+      throw new HttpError(404, "Agent not found");
     }
 
     if (agent.type === AgentType.PRIVATE && agent.userId !== userId) {
-      throw new Error("Unauthorized access to private agent");
+      throw new HttpError(403, "Unauthorized access to private agent");
     }
 
     // Thread Verification
@@ -107,12 +108,12 @@ export class ChatWithAgentUseCase {
     agent: Agent,
   ) {
     if (!agent.configuration.enableThreads) {
-      throw new Error("Threading is disabled for this agent");
+      throw new HttpError(403, "Threading is disabled for this agent");
     }
     const thread = await this.chatRepository.getThreadById(threadId);
-    if (!thread) throw new Error("Thread not found");
+    if (!thread) throw new HttpError(404, "Thread not found");
     if (thread.userId !== userId)
-      throw new Error("Unauthorized access to thread");
+      throw new HttpError(403, "Unauthorized access to thread");
   }
 
   private buildSystemMessage(agent: Agent, contextText: string): SystemMessage {

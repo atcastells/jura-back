@@ -10,24 +10,24 @@ const agentController = Container.get(AgentController);
 // All agent management routes require authentication
 agentRoutes.use(authMiddleware.authenticate());
 
-agentRoutes.post("/", (request, response) =>
-  agentController.createAgent(request, response),
+agentRoutes.post("/", (request, response, next) =>
+  agentController.createAgent(request, response, next),
 );
-agentRoutes.get("/", (request, response) =>
-  agentController.listAgents(request, response),
+agentRoutes.get("/", (request, response, next) =>
+  agentController.listAgents(request, response, next),
 );
-agentRoutes.get("/:id", (request, response) =>
-  agentController.getAgent(request, response),
+agentRoutes.get("/:id", (request, response, next) =>
+  agentController.getAgent(request, response, next),
 );
-agentRoutes.post("/:id/chat", (request, response) =>
-  agentController.chatWithAgent(request, response),
+agentRoutes.post("/:id/chat", (request, response, next) =>
+  agentController.chatWithAgent(request, response, next),
 );
-agentRoutes.post("/:id/threads", (request, response) =>
-  agentController.createThread(request, response),
+agentRoutes.post("/:id/threads", (request, response, next) =>
+  agentController.createThread(request, response, next),
 );
-agentRoutes.get("/:id/threads", (request, response) =>
-  agentController.listThreads(request, response),
+agentRoutes.get("/:id/threads", (request, response, next) =>
+  agentController.listThreads(request, response, next),
 );
-agentRoutes.get("/:id/threads/:threadId", (request, response) =>
-  agentController.getThreadHistory(request, response),
+agentRoutes.get("/:id/threads/:threadId", (request, response, next) =>
+  agentController.getThreadHistory(request, response, next),
 );

@@ -1,5 +1,5 @@
 import { Service, Inject } from "typedi";
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { ChatWithAgentUseCase } from "../../../../application/agents/chat-with-agent.use-case.js";
 import { CreateAgentUseCase } from "../../../../application/agents/create-agent.use-case.js";
 import { ListAgentsUseCase } from "../../../../application/agents/list-agents.use-case.js";
@@ -7,6 +7,7 @@ import { GetAgentUseCase } from "../../../../application/agents/get-agent.use-ca
 import { z } from "zod";
 import { AgentType } from "../../../../domain/entities/agent.js";
 import { AuthenticatedRequest } from "../middlewares/auth-middleware.js";
+import { HttpError } from "../errors/http-error.js";
 
 import { CreateThreadUseCase } from "../../../../application/chat/create-thread.use-case.js";
 import { ListThreadsUseCase } from "../../../../application/chat/list-threads.use-case.js";
@@ -48,14 +49,17 @@ export class AgentController {
     private readonly getThreadHistoryUseCase: GetThreadHistoryUseCase,
   ) {}
 
-  async createAgent(request: Request, response: Response): Promise<void> {
-    const authRequest = request as AuthenticatedRequest;
-    if (!authRequest.user) {
-      response.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-
+  async createAgent(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
+      const authRequest = request as AuthenticatedRequest;
+      if (!authRequest.user) {
+        throw new HttpError(401, "Unauthorized");
+      }
+
       const input = createAgentSchema.parse(request.body);
       // Map input to AgentConfiguration structure expected by use case
       const useCaseInput = {
@@ -74,50 +78,61 @@ export class AgentController {
       );
       response.status(201).json(agent);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        response.status(400).json({ error: error.issues });
-      } else {
-        console.error("Error creating agent:", error);
-        response.status(500).json({ error: "Internal Server Error" });
-      }
+      next(error);
     }
   }
 
-  async listAgents(request: Request, response: Response): Promise<void> {
-    const authRequest = request as AuthenticatedRequest;
-    if (!authRequest.user) {
-      response.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-
-    const agents = await this.listAgentsUseCase.execute(authRequest.user.id);
-    response.json(agents);
-  }
-
-  async getAgent(request: Request, response: Response): Promise<void> {
-    const agentId = request.params.id;
-    const agent = await this.getAgentUseCase.execute(agentId);
-
-    if (!agent) {
-      response.status(404).json({ error: "Agent not found" });
-      return;
-    }
-
-    // Optional: Add authorization check here if relevant
-
-    response.json(agent);
-  }
-
-  async chatWithAgent(request: Request, response: Response): Promise<void> {
-    const authRequest = request as AuthenticatedRequest;
-    if (!authRequest.user) {
-      response.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-
-    const agentId = request.params.id;
-
+  async listAgents(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
+      const authRequest = request as AuthenticatedRequest;
+      if (!authRequest.user) {
+        throw new HttpError(401, "Unauthorized");
+      }
+
+      const agents = await this.listAgentsUseCase.execute(authRequest.user.id);
+      response.json(agents);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getAgent(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const agentId = request.params.id;
+      const agent = await this.getAgentUseCase.execute(agentId);
+
+      if (!agent) {
+        throw new HttpError(404, "Agent not found");
+      }
+
+      // Optional: Add authorization check here if relevant
+
+      response.json(agent);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async chatWithAgent(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const authRequest = request as AuthenticatedRequest;
+      if (!authRequest.user) {
+        throw new HttpError(401, "Unauthorized");
+      }
+
+      const agentId = request.params.id;
       const { message, threadId } = chatSchema.parse(request.body);
       const reply = await this.chatWithAgentUseCase.execute({
         agentId,
@@ -128,35 +143,21 @@ export class AgentController {
 
       response.json({ message: reply });
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        response.status(400).json({ error: error.issues });
-      } else if (
-        error instanceof Error &&
-        (error.message === "Agent not found" ||
-          error.message === "Thread not found")
-      ) {
-        response.status(404).json({ error: error.message });
-      } else if (
-        error instanceof Error &&
-        (error.message.includes("Unauthorized") ||
-          error.message.includes("disabled"))
-      ) {
-        response.status(403).json({ error: error.message });
-      } else {
-        console.error("Error chatting with agent:", error);
-        response.status(500).json({ error: "Internal Server Error" });
-      }
+      next(error);
     }
   }
 
-  async createThread(request: Request, response: Response): Promise<void> {
-    const authRequest = request as AuthenticatedRequest;
-    if (!authRequest.user) {
-      response.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-    const agentId = request.params.id;
+  async createThread(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
+      const authRequest = request as AuthenticatedRequest;
+      if (!authRequest.user) {
+        throw new HttpError(401, "Unauthorized");
+      }
+      const agentId = request.params.id;
       const { title } = createThreadSchema.parse(request.body);
       const thread = await this.createThreadUseCase.execute(
         authRequest.user.id,
@@ -165,49 +166,49 @@ export class AgentController {
       );
       response.status(201).json(thread);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        response.status(400).json({ error: error.issues });
-      } else if (error instanceof Error && error.message.includes("disabled")) {
-        response.status(403).json({ error: error.message });
-      } else {
-        response.status(500).json({ error: "Internal Server Error" });
-      }
+      next(error);
     }
   }
 
-  async listThreads(request: Request, response: Response): Promise<void> {
-    const authRequest = request as AuthenticatedRequest;
-    if (!authRequest.user) {
-      response.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-    const agentId = request.params.id;
-    const threads = await this.listThreadsUseCase.execute(
-      authRequest.user.id,
-      agentId,
-    );
-    response.json(threads);
-  }
-
-  async getThreadHistory(request: Request, response: Response): Promise<void> {
-    const authRequest = request as AuthenticatedRequest;
-    if (!authRequest.user) {
-      response.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-    const threadId = request.params.threadId;
+  async listThreads(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
+      const authRequest = request as AuthenticatedRequest;
+      if (!authRequest.user) {
+        throw new HttpError(401, "Unauthorized");
+      }
+      const agentId = request.params.id;
+      const threads = await this.listThreadsUseCase.execute(
+        authRequest.user.id,
+        agentId,
+      );
+      response.json(threads);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getThreadHistory(
+    request: Request,
+    response: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const authRequest = request as AuthenticatedRequest;
+      if (!authRequest.user) {
+        throw new HttpError(401, "Unauthorized");
+      }
+      const threadId = request.params.threadId;
       const history = await this.getThreadHistoryUseCase.execute(
         authRequest.user.id,
         threadId,
       );
       response.json(history);
     } catch (error) {
-      if (error instanceof Error && error.message === "Thread not found") {
-        response.status(404).json({ error: "Thread not found" });
-      } else {
-        response.status(500).json({ error: "Internal Server Error" });
-      }
+      next(error);
     }
   }
 }
