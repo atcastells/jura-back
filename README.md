@@ -1,6 +1,32 @@
-# Jura API
+# Personal AI Career Agent (Backend API)
 
-> AI-powered career document analysis and recruiter interaction platform
+A personal AI agent that presents your professional history, answers recruiters’ questions, and adapts to context and style.
+
+> **Note**: This is the backend repository for the Jura project.
+
+## 📖 Description
+
+This project provides professionals with a personal AI agent that encapsulates their entire career history. Users can upload CVs or provide conversational updates, generating public links with customizable context and tone. Recruiters can query the agent in natural language, receiving precise, role- or company-specific answers. The agent ensures consistent, accurate, and professional presentation while giving users full control over what is shared.
+
+## ✨ Features
+
+- **Knowledge Base**: Upload CVs and documents to build your agent’s knowledge.
+- **Contextual Adaptation**: Generate public links with customizable context and personalities.
+- **Recruiter Q&A**: Natural-language Q&A interface for recruiters (API support).
+- **Privacy Control**: Full control over what is shared.
+- **Professional Presentation**: Ensures accurate and consistent representation of your career.
+
+## 🛠 Tech Stack
+
+- **Runtime**: Node.js + TypeScript
+- **Framework**: Express 5
+- **Architecture**: Hexagonal (Ports & Adapters)
+- **AI / LLMs**: Gemini, LangChain
+- **Vector Store**: Supabase (pgvector), MongoDB Atlas (Document Store)
+- **Authentication**: Supabase Auth
+- **DI Container**: TypeDI
+- **API Docs**: Scalar + OpenAPI 3.1
+- **Testing**: Jest
 
 ## 🚀 Quick Start
 
@@ -9,7 +35,7 @@
 pnpm install
 
 # Set up environment variables
-cp .env.example .env /en
+cp .env.example .env
 
 # Start development server
 pnpm run dev
@@ -25,113 +51,55 @@ Server runs at `http://localhost:3000`
 | `/openapi.json` | OpenAPI specification |
 | `/health` | Health check |
 
-## 🛠 Tech Stack
+## 📡 Key Endpoints
 
-| Category | Technology |
-|----------|------------|
-| **Runtime** | Node.js + TypeScript |
-| **Framework** | Express 5 |
-| **Architecture** | Hexagonal (Ports & Adapters) |
-| **Database** | MongoDB Atlas |
-| **Auth** | Supabase |
-| **AI/LLM** | Google Gemini via LangChain |
-| **DI Container** | TypeDI |
-| **API Docs** | Scalar + OpenAPI 3.1 |
-| **Testing** | Jest |
-| **Linting** | ESLint + Prettier |
+### Core Capabilities
 
-## 📡 API Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/ingest` | Upload and vectorize career documents (PDF/Text) |
+| POST | `/api/v1/chat` | Main interface for recruiters to ask questions |
+| GET | `/api/v1/context` | View what the AI "knows" about your career |
 
-### Core Endpoints
+*(See `/docs` for the full OpenAPI specification)*
 
-| Status | Method | Endpoint | Description |
-|--------|--------|----------|-------------|
-| ⬜ TODO | POST | `/api/v1/ingest` | Upload and vectorize career documents |
-| ⬜ TODO | POST | `/api/v1/chat` | Main interface for recruiters to ask questions |
-| ⬜ TODO | GET | `/api/v1/context` | View what the AI "knows" about your career |
-| ⬜ TODO | GET | `/api/v1/analytics` | Insights into recruiter interactions |
+## 🗺 Roadmap (MVP)
 
-### Infrastructure Endpoints
+- **Focus**: Personal career representation and recruiter interaction.
+- **Exclusions**: Job application automation, recruiter dashboards, skill testing, social networking, team accounts, payments.
 
-| Status | Method | Endpoint | Description |
-|--------|--------|----------|-------------|
-| ✅ Done | GET | `/health` | Health check |
-| ✅ Done | GET | `/docs` | API documentation |
-| ✅ Done | GET | `/openapi.json` | OpenAPI spec |
+### Implementation Status
 
-## ✅ Features Roadmap
-
-### Infrastructure
-- [x] Express server setup
-- [x] MongoDB Atlas connection
-- [x] Hexagonal architecture
-- [x] TypeDI dependency injection
-- [x] API documentation (Scalar)
-- [x] Health check endpoint
-- [x] CORS configuration
+- [x] Express server & Architecture setup
 - [x] Authentication (Supabase)
-- [ ] Rate limiting
-- [ ] Request validation
-
-### Document Ingestion
-- [ ] PDF upload endpoint
-- [ ] Text extraction
-- [ ] Document chunking
-- [ ] Vector embeddings (Gemini)
-- [ ] Vector storage
-
-### Chat Interface
-- [ ] Chat endpoint
-- [ ] Context retrieval (RAG)
-- [ ] Conversation history
-- [ ] Streaming responses
-
-### Analytics
-- [ ] Interaction logging
-- [ ] Analytics dashboard data
-- [ ] Query insights
-
-### AI/LLM
-- [x] Gemini adapter
-- [x] LangChain integration
-- [x] LangGraph agent setup
-- [ ] Tool registry for agents
-- [ ] RAG pipeline
-
-## 🧪 Scripts
-
-```bash
-pnpm run dev          # Start dev server with hot reload
-pnpm run build        # Build for production
-pnpm run start        # Run production build
-pnpm run test         # Run tests
-pnpm run lint         # Lint code
-pnpm run lint:fix     # Fix lint issues
-pnpm run format       # Format code with Prettier
-```
+- [x] Document Ingestion (PDF upload)
+- [x] Vector Store integration (Supabase)
+- [ ] Text extraction & Chunking
+- [ ] RAG Pipeline implementation
+- [ ] Contextual Chat Endpoint
+- [ ] Recruiter Analytics
 
 ## 📁 Project Structure
 
 ```
 src/
 ├── adapters/
-│   ├── inbound/
-│   │   ├── http/           # Express routes & middleware
-│   │   └── primary/        # Agent factories
-│   └── outbound/
-│       ├── external-services/  # Gemini, LangChain adapters
-│       └── persistence/        # MongoDB adapter
-├── domain/                 # Business logic & entities
-├── ports/                  # Interfaces (ports)
-└── infrastructure/         # Server, config, OpenAPI spec
+│   ├── inbound/        # API Controllers (Express)
+│   └── outbound/       # External services (Supabase, Gemini, MongoDB)
+├── domain/             # Business logic & entities
+├── application/        # Use cases (Orchestration)
+└── infrastructure/     # Configuration & Setup
 ```
 
 ## 🔐 Environment Variables
 
 See `.env.example` for required variables:
 - `MONGO_URI` - MongoDB Atlas connection string
-- `MONGO_DB` - Database name
 - `GEMINI_API_KEY` - Google Gemini API key
 - `SUPABASE_URL` - Supabase project URL
-- `SUPABASE_ANON_KEY` - Supabase anonymous key
+- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service key (for admin tasks)
 - `PORT` - Server port (default: 3000)
+
+## 📄 License
+
+[Specify license here]
