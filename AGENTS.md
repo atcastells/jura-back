@@ -70,26 +70,26 @@ This project uses Linear for task tracking. Agents MUST:
 When working on a task, follow these steps to ensure quality and context retention:
 
 1.  **Context Loading**:
-    *   Read the Linear task description carefully.
-    *   Check for linked PRs, documents, or parent issues.
-    *   Read relevant code files to build a mental model of the affected area.
+    - Read the Linear task description carefully.
+    - Check for linked PRs, documents, or parent issues.
+    - Read relevant code files to build a mental model of the affected area.
 
 2.  **Execution**:
-    *   Break down complex tasks into smaller, verifiable steps.
-    *   Use the `search_web` or documentation tools if you encounter unknown libraries or patterns.
-    *   Write tests *before* or *during* implementation (TDD/BDD) whenever possible.
+    - Break down complex tasks into smaller, verifiable steps.
+    - Use the `search_web` or documentation tools if you encounter unknown libraries or patterns.
+    - Write tests _before_ or _during_ implementation (TDD/BDD) whenever possible.
 
 3.  **Context Storage & Handoff**:
-    *   If a task cannot be completed in critical detail, leave a detailed comment on the Linear issue summarizing:
-        *   What has been done.
-        *   What is blocked or pending.
-        *   Relevant file paths and code snippets.
-    *   Update the `AGENTS.md` or a specific `TODO.md` if architectural decisions change significantly.
+    - If a task cannot be completed in critical detail, leave a detailed comment on the Linear issue summarizing:
+      - What has been done.
+      - What is blocked or pending.
+      - Relevant file paths and code snippets.
+    - Update the `AGENTS.md` or a specific `TODO.md` if architectural decisions change significantly.
 
 4.  **Verification**:
-    *   Run `pnpm test` to ensure no regressions.
-    *   Run `pnpm lint` to maintain code standards.
-    *   Verify the feature works as expected in the local environment.
+    - Run `pnpm test` to ensure no regressions.
+    - Run `pnpm lint` to maintain code standards.
+    - Verify the feature works as expected in the local environment.
 
 ## Environment Setup
 

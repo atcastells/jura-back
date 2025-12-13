@@ -7,6 +7,7 @@ This repository contains a Node.js backend application for a Personal AI Career 
 **Purpose**: A personal AI agent that presents professional history, answers recruiters' questions, and adapts to context and style.
 
 **Key Features**:
+
 - Knowledge Base: Upload CVs and documents
 - RAG Pipeline: Vector search with Supabase pgvector
 - Contextual AI Chat: Natural-language Q&A for recruiters
@@ -28,6 +29,7 @@ src/
 ```
 
 **Key Principles**:
+
 - Domain logic is isolated from infrastructure concerns
 - Dependencies flow inward (domain has no dependencies on outer layers)
 - Use ports (interfaces) in domain, adapters implement them
@@ -36,7 +38,9 @@ src/
 ## Development Setup
 
 ### Package Manager
+
 **ALWAYS use `pnpm`** for all package operations:
+
 ```bash
 pnpm install          # Install dependencies
 pnpm add <package>    # Add a dependency
@@ -44,6 +48,7 @@ pnpm add -D <package> # Add a dev dependency
 ```
 
 ### Commands
+
 ```bash
 pnpm dev              # Start development server with hot reload
 pnpm build            # Compile TypeScript to JavaScript
@@ -57,6 +62,7 @@ pnpm test:coverage    # Run tests with coverage report
 ```
 
 ### Environment Setup
+
 1. Copy `.env.example` to `.env`
 2. Configure required variables (MONGO_URI, GEMINI_API_KEY, SUPABASE_URL, etc.)
 3. Run `pnpm install`
@@ -64,6 +70,7 @@ pnpm test:coverage    # Run tests with coverage report
 ## Code Style & Conventions
 
 ### General
+
 - Use TypeScript strict mode
 - Use ES modules (`import`/`export`, not `require`)
 - File extensions: Use `.js` in imports (TypeScript ESM convention)
@@ -71,6 +78,7 @@ pnpm test:coverage    # Run tests with coverage report
 - Run `pnpm lint` and `pnpm format` before committing
 
 ### Naming Conventions
+
 - Use PascalCase for classes, interfaces, types
 - Use camelCase for functions, variables
 - Use SCREAMING_SNAKE_CASE for constants
@@ -78,6 +86,7 @@ pnpm test:coverage    # Run tests with coverage report
 - Suffix test files with `.test.ts`
 
 ### Dependency Injection
+
 - Use TypeDI `@Service()` decorator for injectable classes
 - Mark injected dependencies as `readonly` in constructor parameters
 - Controllers inject use cases **directly** (no string constants)
@@ -96,6 +105,7 @@ pnpm test:coverage    # Run tests with coverage report
 ## Error Handling
 
 ### Use HttpError for All Service-Level Errors
+
 - **ALWAYS** use `HttpError` class for errors in use cases and controllers
 - Pass errors to `next()` in controllers for centralized error handling
 - Common status codes:
@@ -106,6 +116,7 @@ pnpm test:coverage    # Run tests with coverage report
   - 500: Internal server error
 
 ### Example Pattern
+
 ```typescript
 // In use cases
 if (!resource) {
@@ -149,6 +160,7 @@ try {
 ## Testing
 
 ### Principles
+
 - Write tests for all use cases in `src/application/`
 - Place test files alongside source: `*.test.ts`
 - Use Jest for testing
@@ -156,6 +168,7 @@ try {
 - Test configuration: `jest.config.cjs` (CommonJS format for ESM project)
 
 ### Example Pattern
+
 ```typescript
 describe("MyUseCase", () => {
   let useCase: MyUseCase;
@@ -180,16 +193,18 @@ describe("MyUseCase", () => {
 ## RAG & Vector Store
 
 ### Pipeline
+
 1. Parse document (PDF, text)
 2. Chunk text (1000 characters with 200 character overlap)
 3. Generate embeddings (Gemini text-embedding-004, 768-dimensional)
 4. Store in Supabase pgvector
 
 ### Security
+
 - **ALWAYS** filter vector similarity searches by `user_id` for data isolation
 - Example:
   ```typescript
-  const { data } = await supabase.rpc('match_documents', {
+  const { data } = await supabase.rpc("match_documents", {
     query_embedding: embedding,
     match_threshold: 0.7,
     match_count: 5,
@@ -198,6 +213,7 @@ describe("MyUseCase", () => {
   ```
 
 ### Embeddings
+
 - Model: `text-embedding-004`
 - Dimensions: 768
 - Provider: Google Gemini
@@ -208,7 +224,7 @@ describe("MyUseCase", () => {
 - Initialize telemetry (startTelemetry) **before** all other imports in `server.ts`
 - Example:
   ```typescript
-  import { startTelemetry } from './telemetry.js';
+  import { startTelemetry } from "./telemetry.js";
   startTelemetry();
   // ... other imports
   ```
@@ -216,16 +232,19 @@ describe("MyUseCase", () => {
 ## Database
 
 ### Document Store
+
 - MongoDB Atlas for document metadata
 - Use Drizzle ORM for queries
 
 ### Vector Store
+
 - Supabase pgvector for embeddings
 - Migration files in `supabase/migrations/`
 
 ## Common Patterns
 
 ### Use Case Structure
+
 ```typescript
 @Service()
 export class MyUseCase {
@@ -244,12 +263,11 @@ export class MyUseCase {
 ```
 
 ### Controller Structure
+
 ```typescript
 @Service()
 export class MyController {
-  constructor(
-    private readonly useCase: UseCase,
-  ) {}
+  constructor(private readonly useCase: UseCase) {}
 
   async handler(
     request: Request,
@@ -283,6 +301,7 @@ export class MyController {
 ## Task Management
 
 This project uses Linear for task tracking. When working on tasks:
+
 1. Always work towards an existing Linear task
 2. Verify task status before starting work
 3. Update task status as work progresses
@@ -298,6 +317,7 @@ This project uses Linear for task tracking. When working on tasks:
 ## Before Committing
 
 Run these checks:
+
 ```bash
 pnpm lint        # Fix any linting errors
 pnpm format      # Format code

@@ -39,7 +39,7 @@ For each new endpoint, add to `openapi.yaml`:
               field:
                 type: string
     responses:
-      '200':
+      "200":
         description: Success
         content:
           application/json:
@@ -48,9 +48,9 @@ For each new endpoint, add to `openapi.yaml`:
               properties:
                 data:
                   type: string
-      '400':
+      "400":
         description: Bad request
-      '401':
+      "401":
         description: Unauthorized
 ```
 

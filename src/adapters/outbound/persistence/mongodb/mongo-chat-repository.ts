@@ -53,12 +53,14 @@ export class MongoChatRepository implements ChatRepository {
   }
 
   async getThreadById(id: string): Promise<Thread | null> {
+    // eslint-disable-next-line unicorn/no-null
     if (!ObjectId.isValid(id)) return null;
 
     const thread = await this.threadCollection.findOne({
       _id: new ObjectId(id),
     } as Filter<ThreadSchema>);
 
+    // eslint-disable-next-line unicorn/no-null
     if (!thread) return null;
 
     return this.mapThread(thread);

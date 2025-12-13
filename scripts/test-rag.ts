@@ -40,14 +40,15 @@ async function main() {
   Container.set(RetrieveContextUseCase, retrieveContext);
 
   const ragService = new RagService(retrieveContext, langChainAdapter);
-  
+
   const userId = "00000000-0000-0000-0000-000000000000"; // Test UUID
   const docId = "11111111-1111-1111-1111-111111111111"; // Test Doc UUID
 
   console.log("1. Creating dummy document chunk...");
-  const text = "Jura is an AI-powered recruitment platform that helps recruiters screen candidates faster.";
+  const text =
+    "Jura is an AI-powered recruitment platform that helps recruiters screen candidates faster.";
   const embedding = await embeddingService.embedQuery(text);
-  
+
   const chunk: DocumentChunk = {
     id: "22222222-2222-2222-2222-222222222222",
     documentId: docId,
@@ -70,11 +71,11 @@ async function main() {
   console.log("--------------\n");
 
   if (answer.toLowerCase().includes("recruitment platform")) {
-      console.log("✅ SUCCESS: RAG pipeline working!");
-      process.exit(0);
+    console.log("✅ SUCCESS: RAG pipeline working!");
+    process.exit(0);
   } else {
-      console.error("❌ FAILURE: Answer did not contain expected content.");
-      process.exit(1);
+    console.error("❌ FAILURE: Answer did not contain expected content.");
+    process.exit(1);
   }
 }
 
