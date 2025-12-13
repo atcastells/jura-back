@@ -45,23 +45,23 @@ Server runs at `http://localhost:3000`
 
 ## 📚 API Documentation
 
-| Endpoint | Description |
-|----------|-------------|
-| `/docs` | Interactive API docs (Scalar) |
-| `/openapi.json` | OpenAPI specification |
-| `/health` | Health check |
+| Endpoint        | Description                   |
+| --------------- | ----------------------------- |
+| `/docs`         | Interactive API docs (Scalar) |
+| `/openapi.json` | OpenAPI specification         |
+| `/health`       | Health check                  |
 
 ## 📡 Key Endpoints
 
 ### Core Capabilities
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/ingest` | Upload and vectorize career documents (PDF/Text) |
-| POST | `/api/v1/chat` | Main interface for recruiters to ask questions |
-| GET | `/api/v1/context` | View what the AI "knows" about your career |
+| Method | Endpoint          | Description                                      |
+| ------ | ----------------- | ------------------------------------------------ |
+| POST   | `/api/v1/ingest`  | Upload and vectorize career documents (PDF/Text) |
+| POST   | `/api/v1/chat`    | Main interface for recruiters to ask questions   |
+| GET    | `/api/v1/context` | View what the AI "knows" about your career       |
 
-*(See `/docs` for the full OpenAPI specification)*
+_(See `/docs` for the full OpenAPI specification)_
 
 ## 🗺 Roadmap (MVP)
 
@@ -94,6 +94,7 @@ src/
 ## 🔐 Environment Variables
 
 See `.env.example` for required variables:
+
 - `MONGO_URI` - MongoDB Atlas connection string
 - `GEMINI_API_KEY` - Google Gemini API key
 - `SUPABASE_URL` - Supabase project URL
