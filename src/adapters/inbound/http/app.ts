@@ -7,6 +7,7 @@ import YAML from "yaml";
 import { errorHandler } from "./middlewares/error-handler.js";
 import { authRouter } from "./routes/auth-routes.js";
 import { createIngestRouter } from "./routes/ingest-route.js";
+import { otelLoggingMiddleware } from "./middlewares/otel-logging-middleware.js";
 
 // Load OpenAPI spec
 const __filename = fileURLToPath(import.meta.url);
@@ -33,6 +34,9 @@ export const createApp = async (): Promise<Application> => {
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  // OpenTelemetry logging middleware
+  app.use(otelLoggingMiddleware);
 
   // Request logging middleware
   app.use((request, _response, next) => {
