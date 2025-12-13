@@ -1,4 +1,9 @@
 import "reflect-metadata";
+import { startTelemetry } from "./telemetry.js";
+
+// Initialize telemetry before anything else
+startTelemetry();
+
 import { createApp } from "../adapters/inbound/http/app.js";
 import { MongoDBAdapter } from "../adapters/outbound/persistence/mongodb/mongo-database-adapter.js";
 import { Container } from "typedi";
