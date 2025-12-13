@@ -2,7 +2,6 @@ import { z } from "zod";
 import { ChatRole } from "../../../../../domain/entities/chat-message.js";
 
 export const threadSchema = z.object({
-  id: z.string(),
   agentId: z.string(),
   userId: z.string(),
   title: z.string().optional(),
@@ -11,7 +10,6 @@ export const threadSchema = z.object({
 });
 
 export const chatMessageSchema = z.object({
-  id: z.string(),
   threadId: z.string(),
   role: z.nativeEnum(ChatRole),
   content: z.string(),
