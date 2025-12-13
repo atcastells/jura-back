@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { Service, Inject } from "typedi";
-import { AuthService } from "../../../../domain/auth/auth-service.js";
+import { SignUpUseCase } from "../../../../application/auth/sign-up.use-case.js";
+import { SignInUseCase } from "../../../../application/auth/sign-in.use-case.js";
 
 interface AuthenticatedRequest extends Request {
   user?: unknown;
@@ -9,13 +10,14 @@ interface AuthenticatedRequest extends Request {
 @Service()
 export class AuthController {
   constructor(
-    @Inject(() => AuthService) private readonly authService: AuthService,
+    @Inject(() => SignUpUseCase) private readonly signUpUseCase: SignUpUseCase,
+    @Inject(() => SignInUseCase) private readonly signInUseCase: SignInUseCase,
   ) {}
 
   async signup(request: Request, response: Response, next: NextFunction) {
     try {
       const { email, password, organizationId } = request.body;
-      const user = await this.authService.signup(
+      const user = await this.signUpUseCase.execute(
         email,
         password,
         organizationId,
@@ -29,7 +31,7 @@ export class AuthController {
   async signin(request: Request, response: Response, next: NextFunction) {
     try {
       const { email, password } = request.body;
-      const result = await this.authService.signin(email, password);
+      const result = await this.signInUseCase.execute(email, password);
       response.status(200).json(result);
     } catch (error) {
       next(error); // Might want to map error to specific status code

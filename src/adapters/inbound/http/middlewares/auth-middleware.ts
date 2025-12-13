@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { Container } from "typedi";
-import { AuthService } from "../../../../domain/auth/auth-service.js";
+import { ValidateTokenUseCase } from "../../../../application/auth/validate-token.use-case.js";
 import { User } from "../../../../domain/user/user.js";
 
 /**
@@ -21,9 +21,9 @@ async function validateAuthToken(
   }
 
   const token = authHeader.slice(7); // Remove 'Bearer ' prefix
-  const authService = Container.get(AuthService);
+  const validateTokenUseCase = Container.get(ValidateTokenUseCase);
 
-  const user = await authService.validateToken(token);
+  const user = await validateTokenUseCase.execute(token);
   return user ?? undefined;
 }
 
@@ -88,12 +88,12 @@ async function handleOptionalAuth(
 }
 
 /**
- * Authentication middleware using AuthService
+ * Authentication middleware using ValidateTokenUseCase
  */
 export class AuthMiddleware {
   /**
    * Middleware to verify authentication token
-   * Extracts the token from Authorization header and validates it using AuthService
+   * Extracts the token from Authorization header and validates it using ValidateTokenUseCase
    */
   authenticate() {
     return handleAuthenticate;
