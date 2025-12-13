@@ -26,7 +26,7 @@ export class UploadDocumentUseCase {
     category: Document["category"] = "other",
   ): Promise<Document> {
     // 1. Upload to Supabase
-    const publicUrl = await this.storageAdapter.uploadFile(
+    const { path, publicUrl } = await this.storageAdapter.uploadFile(
       file,
       DOCUMENT_BUCKET_NAME,
     );
@@ -43,7 +43,7 @@ export class UploadDocumentUseCase {
       mimeType: file.mimetype,
       size: file.size,
       provider: "supabase",
-      path: publicUrl.split("/").pop() || file.originalname, // Extract path or filename
+      path,
       publicUrl,
       createdAt: new Date(),
       updatedAt: new Date(),

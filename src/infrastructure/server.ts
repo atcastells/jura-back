@@ -43,7 +43,7 @@ try {
   const supabaseClient = new SupabaseClient(
     config.supabase.url,
     config.supabase.anonKey,
-    config.supabase.anonKey,
+    config.supabase.serviceRoleKey,
   );
 
   // Register external services

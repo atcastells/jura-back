@@ -29,7 +29,23 @@ export const signinSchema = z.object({
 });
 
 /**
+ * Validation schema for document upload endpoint
+ */
+export const uploadDocumentSchema = z.object({
+  category: z.enum([
+    "resume",
+    "cover_letter",
+    "portfolio",
+    "certification",
+    "transcript",
+    "reference",
+    "other",
+  ]),
+});
+
+/**
  * Type exports for TypeScript type inference
  */
 export type SignupInput = z.infer<typeof signupSchema>;
 export type SigninInput = z.infer<typeof signinSchema>;
+export type UploadDocumentInput = z.infer<typeof uploadDocumentSchema>;
