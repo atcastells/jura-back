@@ -15,7 +15,7 @@ export interface UploadFile {
  */
 @Service()
 export class SupabaseStorageAdapter {
-  private supabase: SupabaseClient;
+  private readonly supabase: SupabaseClient;
 
   constructor() {
     this.supabase = createClient(config.supabase.url, config.supabase.anonKey);

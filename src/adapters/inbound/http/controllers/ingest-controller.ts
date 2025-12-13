@@ -10,9 +10,9 @@ import { HttpError } from "../errors/http-error.js";
 @Service()
 export class IngestController {
   constructor(
-    private uploadDocumentUseCase: UploadDocumentUseCase,
-    private listDocumentsUseCase: ListDocumentsUseCase,
-    private deleteDocumentUseCase: DeleteDocumentUseCase,
+    private readonly uploadDocumentUseCase: UploadDocumentUseCase,
+    private readonly listDocumentsUseCase: ListDocumentsUseCase,
+    private readonly deleteDocumentUseCase: DeleteDocumentUseCase,
   ) {}
 
   async uploadDocument(

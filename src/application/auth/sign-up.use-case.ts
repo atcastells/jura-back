@@ -1,12 +1,12 @@
 import { Service, Inject } from "typedi";
-import { User } from "../user/user.js";
+import { User } from "../../domain/user/user.js";
 import { SupabaseClient } from "../../adapters/outbound/authentication/supabase-client.js";
 import { HttpError } from "../../adapters/inbound/http/errors/http-error.js";
-import { AuthRepository } from "./auth-repository.js";
+import { AuthRepository } from "../../domain/auth/auth-repository.js";
 import { AUTH_REPOSITORY } from "../../infrastructure/constants.js";
 
 @Service()
-export class AuthService {
+export class SignUpUseCase {
   constructor(
     @Inject(AUTH_REPOSITORY)
     private readonly authRepository: AuthRepository,
@@ -14,14 +14,12 @@ export class AuthService {
     private readonly supabaseClient: SupabaseClient,
   ) {}
 
-  async signup(
+  async execute(
     email: string,
     password: string,
     organizationId: string,
   ): Promise<User> {
     // 1. Check if user already exists in MongoDB to prevent race condition
-    // Note: For complete protection against concurrent requests, consider adding
-    // a unique index on the email field in MongoDB
     const existingUser = await this.authRepository.findByEmail(email);
     if (existingUser) {
       throw new HttpError(409, "User with this email already exists");
@@ -65,45 +63,5 @@ export class AuthService {
     };
 
     return this.authRepository.create(user);
-  }
-
-  async signin(
-    email: string,
-    password: string,
-  ): Promise<{ token: string; user: User }> {
-    const supabase = this.supabaseClient.getClient();
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error || !data.session) {
-      const status = error ? (error.status ?? 400) : 401;
-      throw new HttpError(status, error?.message || "Signin failed");
-    }
-
-    // Fetch full user profile from MongoDB
-    const user = await this.authRepository.findByAuthId(data.user.id);
-    if (!user) {
-      throw new HttpError(404, "User profile not found");
-    }
-
-    return { token: data.session.access_token, user };
-  }
-
-  async validateToken(token: string): Promise<User | undefined> {
-    const supabase = this.supabaseClient.getClient();
-
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser(token);
-
-    if (error || !user) {
-      return undefined;
-    }
-
-    return this.authRepository.findByAuthId(user.id);
   }
 }

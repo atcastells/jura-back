@@ -7,7 +7,7 @@ import { DOCUMENT_REPOSITORY } from "../../infrastructure/constants.js";
 export class ListDocumentsUseCase {
   constructor(
     @Inject(DOCUMENT_REPOSITORY)
-    private documentRepository: DocumentRepository,
+    private readonly documentRepository: DocumentRepository,
   ) {}
 
   async execute(userId: string): Promise<Document[]> {

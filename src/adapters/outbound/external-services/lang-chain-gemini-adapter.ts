@@ -23,8 +23,10 @@ export enum MessageType {
 
 @Service()
 export class LangChainGeminiAdapter extends BaseChatModel {
-  private _boundTools?: BindToolsInput[];
-  private _boundKwargs?: Partial<BaseChatModelCallOptions>;
+  // @ts-ignore
+  _boundTools?: BindToolsInput[];
+  // @ts-ignore
+  _boundKwargs?: Partial<BaseChatModelCallOptions>;
 
   constructor(private adapter: GeminiAdapter) {
     super({});
