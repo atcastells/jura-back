@@ -18,6 +18,8 @@ tags:
     description: Authentication endpoints
   - name: AI
     description: AI and agent-related endpoints
+  - name: Documents
+    description: Document ingestion and management endpoints
 
 paths:
   /health:
@@ -138,6 +140,59 @@ paths:
                 $ref: '#/components/schemas/User'
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/ingest:
+    post:
+      tags:
+        - Documents
+      summary: Upload Document
+      description: Upload a document (PDF) for ingestion.
+      operationId: ingestDocument
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: PDF file to upload (max 10MB)
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  file:
+                    type: object
+                    properties:
+                      originalName:
+                        type: string
+                      mimeType:
+                        type: string
+                      size:
+                        type: number
+                      url:
+                        type: string
+        '400':
+          description: Bad request (invalid file type or size)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
           content:
             application/json:
               schema:
