@@ -1,4 +1,17 @@
+import { z } from "zod";
 import { signupSchema, signinSchema } from "./validation-schemas";
+
+const testInvalid = <T extends z.ZodType>(
+  schema: T,
+  data: unknown,
+  expectedMessage?: string,
+) => {
+  const result = schema.safeParse(data);
+  expect(result.success).toBe(false);
+  if (!result.success && expectedMessage) {
+    expect(result.error.issues[0].message).toContain(expectedMessage);
+  }
+};
 
 describe("Validation Schemas", () => {
   describe("signupSchema", () => {
@@ -19,12 +32,7 @@ describe("Validation Schemas", () => {
         password: "SecurePass123",
         organizationId: "org_12345",
       };
-
-      const result = signupSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toContain("Invalid email");
-      }
+      testInvalid(signupSchema, invalidData, "Invalid email");
     });
 
     it("should reject password without uppercase letter", () => {
@@ -33,12 +41,7 @@ describe("Validation Schemas", () => {
         password: "weakpass123",
         organizationId: "org_12345",
       };
-
-      const result = signupSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toContain("uppercase");
-      }
+      testInvalid(signupSchema, invalidData, "uppercase");
     });
 
     it("should reject password shorter than 8 characters", () => {
@@ -47,12 +50,7 @@ describe("Validation Schemas", () => {
         password: "Pass1",
         organizationId: "org_12345",
       };
-
-      const result = signupSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toContain("at least 8");
-      }
+      testInvalid(signupSchema, invalidData, "at least 8");
     });
 
     it("should reject password without number", () => {
@@ -61,12 +59,7 @@ describe("Validation Schemas", () => {
         password: "SecurePassword",
         organizationId: "org_12345",
       };
-
-      const result = signupSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toContain("number");
-      }
+      testInvalid(signupSchema, invalidData, "number");
     });
 
     it("should reject invalid organization ID format", () => {
@@ -75,23 +68,14 @@ describe("Validation Schemas", () => {
         password: "SecurePass123",
         organizationId: "org@invalid!",
       };
-
-      const result = signupSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toContain(
-          "Invalid organization ID",
-        );
-      }
+      testInvalid(signupSchema, invalidData, "Invalid organization ID");
     });
 
     it("should reject missing required fields", () => {
       const invalidData = {
         email: "user@example.com",
       };
-
-      const result = signupSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
+      testInvalid(signupSchema, invalidData);
     });
   });
 
@@ -111,12 +95,7 @@ describe("Validation Schemas", () => {
         email: "not-an-email",
         password: "password",
       };
-
-      const result = signinSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toContain("Invalid email");
-      }
+      testInvalid(signinSchema, invalidData, "Invalid email");
     });
 
     it("should reject empty password", () => {
@@ -124,23 +103,14 @@ describe("Validation Schemas", () => {
         email: "user@example.com",
         password: "",
       };
-
-      const result = signinSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toContain(
-          "Password is required",
-        );
-      }
+      testInvalid(signinSchema, invalidData, "Password is required");
     });
 
     it("should reject missing required fields", () => {
       const invalidData = {
         email: "user@example.com",
       };
-
-      const result = signinSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
+      testInvalid(signinSchema, invalidData);
     });
   });
 });
