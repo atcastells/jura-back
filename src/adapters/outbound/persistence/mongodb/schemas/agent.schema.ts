@@ -12,6 +12,7 @@ export const agentSchema = z.object({
   configuration: z.object({
     systemPrompt: z.string(),
     tone: z.string(),
+    enableThreads: z.boolean(),
   }),
   createdAt: z.date(),
   updatedAt: z.date(),
