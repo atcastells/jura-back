@@ -48,7 +48,7 @@ jobs:
         run: pnpm lint
 
       - name: Format check
-        run: pnpm exec prettier --check "src/**/*.ts"
+        run: pnpm exec prettier --check "**/*.{ts,js,json,md,yml,yaml}"
 
       - name: Build
         run: pnpm build
