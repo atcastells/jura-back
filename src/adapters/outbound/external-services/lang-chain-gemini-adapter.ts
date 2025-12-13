@@ -3,11 +3,14 @@ import {
   type BaseChatModelCallOptions,
   type BindToolsInput,
 } from "@langchain/core/language_models/chat_models";
-import { BaseMessage, AIMessage } from "@langchain/core/messages";
+import {
+  BaseMessage,
+  AIMessage,
+  AIMessageChunk,
+} from "@langchain/core/messages";
 import { ChatResult, ChatGeneration } from "@langchain/core/outputs";
 import type { CallbackManagerForLLMRun } from "@langchain/core/callbacks/manager";
 import type { BaseLanguageModelInput } from "@langchain/core/language_models/base";
-import { AIMessageChunk } from "@langchain/core/messages";
 import type { Runnable } from "@langchain/core/runnables";
 import { GeminiAdapter } from "./gemini-adapter.js";
 import { Service } from "typedi";
@@ -23,12 +26,10 @@ export enum MessageType {
 
 @Service()
 export class LangChainGeminiAdapter extends BaseChatModel {
-  // @ts-ignore
   _boundTools?: BindToolsInput[];
-  // @ts-ignore
   _boundKwargs?: Partial<BaseChatModelCallOptions>;
 
-  constructor(private adapter: GeminiAdapter) {
+  constructor(private readonly adapter: GeminiAdapter) {
     super({});
   }
 
