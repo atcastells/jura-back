@@ -3,6 +3,8 @@ import { Container } from "typedi";
 import { IngestController } from "../controllers/ingest-controller.js";
 import { pdfUploadMiddleware } from "../middlewares/file-upload-middleware.js";
 import { authMiddleware } from "../middlewares/auth-middleware.js";
+import { validateRequest } from "../middlewares/validate-request.js";
+import { uploadDocumentSchema } from "../middlewares/validation-schemas.js";
 
 export const createIngestRouter = (): Router => {
   const router = Router();
@@ -12,17 +14,23 @@ export const createIngestRouter = (): Router => {
     "/ingest",
     authMiddleware.authenticate(),
     pdfUploadMiddleware,
-    (request, response) => ingestController.uploadDocument(request, response),
+    validateRequest(uploadDocumentSchema),
+    (request, response, next) =>
+      ingestController.uploadDocument(request, response, next),
   );
 
-  router.get("/ingest", authMiddleware.authenticate(), (request, response) =>
-    ingestController.listDocuments(request, response),
+  router.get(
+    "/ingest",
+    authMiddleware.authenticate(),
+    (request, response, next) =>
+      ingestController.listDocuments(request, response, next),
   );
 
   router.delete(
     "/ingest/:id",
     authMiddleware.authenticate(),
-    (request, response) => ingestController.deleteDocument(request, response),
+    (request, response, next) =>
+      ingestController.deleteDocument(request, response, next),
   );
 
   return router;

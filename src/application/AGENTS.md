@@ -5,5 +5,5 @@
 - **File Naming**: Use kebab-case and end files with `.use-case.ts` (e.g., `upload-document.use-case.ts`).
 - **Class Naming**: PascalCase ending with `UseCase` (e.g., `UploadDocumentUseCase`).
 
-## implementation
+## Implementation
 - **Dependency Injection**: Use `typedi` for dependency injection. Decorate use case classes with `@Service()`.

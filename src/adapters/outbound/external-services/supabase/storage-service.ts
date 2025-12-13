@@ -21,7 +21,10 @@ export class SupabaseStorageAdapter {
     this.supabase = createClient(config.supabase.url, config.supabase.anonKey);
   }
 
-  async uploadFile(file: UploadFile, bucketName: string): Promise<string> {
+  async uploadFile(
+    file: UploadFile,
+    bucketName: string,
+  ): Promise<{ path: string; publicUrl: string }> {
     const fileName = `${Date.now()}-${file.originalname}`;
     const { error } = await this.supabase.storage
       .from(bucketName)
@@ -39,7 +42,10 @@ export class SupabaseStorageAdapter {
       .from(bucketName)
       .getPublicUrl(fileName);
 
-    return publicUrlData.publicUrl;
+    return {
+      path: fileName,
+      publicUrl: publicUrlData.publicUrl,
+    };
   }
 
   async deleteFile(path: string, bucketName: string): Promise<void> {

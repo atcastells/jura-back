@@ -3,6 +3,7 @@ import { DocumentRepository } from "../../domain/ports/outbound/document-reposit
 import { SupabaseStorageAdapter } from "../../adapters/outbound/external-services/supabase/storage-service.js";
 import { DOCUMENT_REPOSITORY } from "../../infrastructure/constants.js";
 import { DOCUMENT_BUCKET_NAME } from "../../adapters/outbound/external-services/supabase/constants.js";
+import { HttpError } from "../../adapters/inbound/http/errors/http-error.js";
 
 @Service()
 export class DeleteDocumentUseCase {
@@ -17,11 +18,11 @@ export class DeleteDocumentUseCase {
     const document = await this.documentRepository.findById(id);
 
     if (!document) {
-      throw new Error("Document not found");
+      throw new HttpError(404, "Document not found");
     }
 
     if (document.userId !== userId) {
-      throw new Error("Unauthorized to delete this document");
+      throw new HttpError(403, "Unauthorized to delete this document");
     }
 
     // 1. Delete from Storage
