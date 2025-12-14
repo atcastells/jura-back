@@ -1,5 +1,9 @@
 import { Service, Inject } from "typedi";
-import { Profile, ProfileBasics, ProfilePreferences } from "../../domain/entities/profile.js";
+import {
+  Profile,
+  ProfileBasics,
+  ProfilePreferences,
+} from "../../domain/entities/profile.js";
 import { ProfileRepository } from "../../domain/ports/outbound/profile-repository.js";
 import { PROFILE_REPOSITORY } from "../../infrastructure/constants.js";
 import { HttpError } from "../../adapters/inbound/http/errors/http-error.js";

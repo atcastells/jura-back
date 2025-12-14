@@ -42,7 +42,8 @@ describe("EnsureMyProfileUseCase", () => {
     mockAuthRepository = {
       findById: jest.fn(),
       findByEmail: jest.fn(),
-      save: jest.fn(),
+      findByAuthId: jest.fn(),
+      create: jest.fn(),
     } as jest.Mocked<AuthRepository>;
 
     useCase = new EnsureMyProfileUseCase(

@@ -15,14 +15,12 @@ export const createAuthRouter = (): Router => {
   router.post(
     "/signup",
     validateRequest(signupSchema),
-    (request, response, next) =>
-      authController.signup(request, response, next),
+    (request, response, next) => authController.signup(request, response, next),
   );
   router.post(
     "/signin",
     validateRequest(signinSchema),
-    (request, response, next) =>
-      authController.signin(request, response, next),
+    (request, response, next) => authController.signin(request, response, next),
   );
   router.get("/me", authMiddleware.authenticate(), (request, response, next) =>
     authController.me(request, response, next),

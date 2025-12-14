@@ -16,7 +16,7 @@ export const createProfileGetMyProfileTool = (): DynamicStructuredTool => {
     func: async ({ userId }) => {
       const useCase = Container.get(EnsureMyProfileUseCase);
       const profile = await useCase.execute(userId);
-      return JSON.stringify(profile, null, 2);
+      return JSON.stringify(profile, undefined, 2);
     },
   });
 };

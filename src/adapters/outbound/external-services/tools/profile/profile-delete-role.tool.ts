@@ -16,7 +16,7 @@ export const createProfileDeleteRoleTool = (): DynamicStructuredTool => {
     func: async ({ userId, roleId }) => {
       const useCase = Container.get(DeleteRoleUseCase);
       const profile = await useCase.execute(userId, roleId);
-      return JSON.stringify(profile, null, 2);
+      return JSON.stringify(profile, undefined, 2);
     },
   });
 };

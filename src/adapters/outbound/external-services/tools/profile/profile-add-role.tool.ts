@@ -26,7 +26,7 @@ export const createProfileAddRoleTool = (): DynamicStructuredTool => {
     func: async ({ userId, ...roleData }) => {
       const useCase = Container.get(AddRoleUseCase);
       const profile = await useCase.execute(userId, roleData);
-      return JSON.stringify(profile, null, 2);
+      return JSON.stringify(profile, undefined, 2);
     },
   });
 };

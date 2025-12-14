@@ -9,13 +9,13 @@ export interface CompletenessResult {
  * Service to calculate profile completeness score based on filled fields.
  * Score is 0-100 representing percentage of important fields completed.
  */
-export class ProfileCompletenessService {
+export const ProfileCompletenessService = {
   /**
    * Calculate completeness score for a profile
    * @param profile The profile to evaluate
    * @returns Score (0-100) and list of missing important fields
    */
-  static calculate(profile: Profile): CompletenessResult {
+  calculate(profile: Profile): CompletenessResult {
     const missingFields: string[] = [];
     let totalFields = 0;
     let completedFields = 0;
@@ -84,5 +84,5 @@ export class ProfileCompletenessService {
       score,
       missingFields,
     };
-  }
-}
+  },
+};

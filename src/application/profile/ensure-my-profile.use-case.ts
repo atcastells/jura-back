@@ -1,7 +1,10 @@
 import { Service, Inject } from "typedi";
 import { Profile } from "../../domain/entities/profile.js";
 import { ProfileRepository } from "../../domain/ports/outbound/profile-repository.js";
-import { PROFILE_REPOSITORY, AUTH_REPOSITORY } from "../../infrastructure/constants.js";
+import {
+  PROFILE_REPOSITORY,
+  AUTH_REPOSITORY,
+} from "../../infrastructure/constants.js";
 import { AuthRepository } from "../../domain/auth/auth-repository.js";
 import { ProfileCompletenessService } from "../../domain/services/profile-completeness.js";
 

@@ -4,7 +4,6 @@ import { z } from "zod";
 import { AuthenticatedRequest } from "../middlewares/auth-middleware.js";
 import { HttpError } from "../errors/http-error.js";
 import { EnsureMyProfileUseCase } from "../../../../application/profile/ensure-my-profile.use-case.js";
-import { GetMyProfileUseCase } from "../../../../application/profile/get-my-profile.use-case.js";
 import { UpdateMyProfileUseCase } from "../../../../application/profile/update-my-profile.use-case.js";
 import { AddRoleUseCase } from "../../../../application/profile/add-role.use-case.js";
 import { UpdateRoleUseCase } from "../../../../application/profile/update-role.use-case.js";
@@ -62,8 +61,6 @@ export class ProfileController {
   constructor(
     @Inject(() => EnsureMyProfileUseCase)
     private readonly ensureMyProfileUseCase: EnsureMyProfileUseCase,
-    @Inject(() => GetMyProfileUseCase)
-    private readonly getMyProfileUseCase: GetMyProfileUseCase,
     @Inject(() => UpdateMyProfileUseCase)
     private readonly updateMyProfileUseCase: UpdateMyProfileUseCase,
     @Inject(() => AddRoleUseCase)

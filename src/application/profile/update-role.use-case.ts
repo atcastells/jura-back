@@ -14,7 +14,11 @@ export class UpdateRoleUseCase {
     private readonly profileRepository: ProfileRepository,
   ) {}
 
-  async execute(userId: string, roleId: string, input: UpdateRoleInput): Promise<Profile> {
+  async execute(
+    userId: string,
+    roleId: string,
+    input: UpdateRoleInput,
+  ): Promise<Profile> {
     const profile = await this.profileRepository.findByUserId(userId);
 
     if (!profile) {

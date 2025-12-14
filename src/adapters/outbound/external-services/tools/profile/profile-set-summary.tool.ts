@@ -19,7 +19,7 @@ export const createProfileSetSummaryTool = (): DynamicStructuredTool => {
     func: async ({ userId, summary }) => {
       const useCase = Container.get(UpdateMyProfileUseCase);
       const profile = await useCase.execute(userId, { summary });
-      return JSON.stringify(profile, null, 2);
+      return JSON.stringify(profile, undefined, 2);
     },
   });
 };

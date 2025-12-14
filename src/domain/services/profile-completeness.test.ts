@@ -145,8 +145,9 @@ describe("ProfileCompletenessService", () => {
         summary: "   ",
       };
 
-      const result =
-        ProfileCompletenessService.calculate(profileWithEmptySummary);
+      const result = ProfileCompletenessService.calculate(
+        profileWithEmptySummary,
+      );
 
       expect(result.missingFields).toContain("summary");
     });

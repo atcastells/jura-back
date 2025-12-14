@@ -13,7 +13,9 @@ export class MongoProfileRepository implements ProfileRepository {
   ) {}
 
   private get collection() {
-    return this.databaseConnection.getDb().collection<ProfileSchema>("profiles");
+    return this.databaseConnection
+      .getDb()
+      .collection<ProfileSchema>("profiles");
   }
 
   async save(profile: Profile): Promise<Profile> {
