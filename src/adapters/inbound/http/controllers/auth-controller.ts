@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { Service, Inject } from "typedi";
+import { Service } from "typedi";
 import { SignUpUseCase } from "../../../../application/auth/sign-up.use-case.js";
 import { SignInUseCase } from "../../../../application/auth/sign-in.use-case.js";
 
@@ -10,8 +10,8 @@ interface AuthenticatedRequest extends Request {
 @Service()
 export class AuthController {
   constructor(
-    @Inject(() => SignUpUseCase) private readonly signUpUseCase: SignUpUseCase,
-    @Inject(() => SignInUseCase) private readonly signInUseCase: SignInUseCase,
+    private readonly signUpUseCase: SignUpUseCase,
+    private readonly signInUseCase: SignInUseCase,
   ) {}
 
   async signup(request: Request, response: Response, next: NextFunction) {
