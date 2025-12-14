@@ -1,5 +1,14 @@
 import { Service } from "typedi";
 import type { DynamicStructuredTool } from "@langchain/core/tools";
+import {
+  createProfileGetMyProfileTool,
+  createProfileUpdateBasicsTool,
+  createProfileSetSummaryTool,
+  createProfileSetSkillsTool,
+  createProfileAddRoleTool,
+  createProfileUpdateRoleTool,
+  createProfileDeleteRoleTool,
+} from "./profile/index.js";
 
 /**
  * Central registry for all LangChain tools available to AI agents.
@@ -16,6 +25,8 @@ import type { DynamicStructuredTool } from "@langchain/core/tools";
  */
 @Service()
 export class ToolRegistry {
+  private profileTools?: DynamicStructuredTool[];
+
   constructor() {
     // Add more tool dependencies here as they are created
   }
@@ -27,8 +38,30 @@ export class ToolRegistry {
    */
   getAllTools(): DynamicStructuredTool[] {
     return [
+      ...this.getProfileTools(),
       // Add more tools here as they are created
     ];
+  }
+
+  /**
+   * Returns profile management tools for internal agents.
+   * These tools are not exposed to public agents by default.
+   *
+   * @returns Array of profile-related tools
+   */
+  getProfileTools(): DynamicStructuredTool[] {
+    if (!this.profileTools) {
+      this.profileTools = [
+        createProfileGetMyProfileTool(),
+        createProfileUpdateBasicsTool(),
+        createProfileSetSummaryTool(),
+        createProfileSetSkillsTool(),
+        createProfileAddRoleTool(),
+        createProfileUpdateRoleTool(),
+        createProfileDeleteRoleTool(),
+      ];
+    }
+    return this.profileTools;
   }
 
   /**
@@ -76,6 +109,7 @@ export class ToolRegistry {
    * Useful for testing or when configuration changes.
    */
   reset(): void {
+    this.profileTools = undefined;
     // Add reset calls for other tools as they are created
   }
 }
