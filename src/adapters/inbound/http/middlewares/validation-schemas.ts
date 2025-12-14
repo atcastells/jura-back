@@ -13,10 +13,6 @@ export const signupSchema = z.object({
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
       "Password must contain at least one uppercase letter, one lowercase letter, and one number",
     ),
-  organizationId: z
-    .string()
-    .min(1, "Organization ID is required")
-    .regex(/^[a-zA-Z0-9_-]+$/, "Invalid organization ID format"),
 });
 
 /**

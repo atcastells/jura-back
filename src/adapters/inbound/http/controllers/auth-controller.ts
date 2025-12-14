@@ -1,5 +1,6 @@
+import "reflect-metadata";
 import { Request, Response, NextFunction } from "express";
-import { Service } from "typedi";
+import { Service, Inject } from "typedi";
 import { SignUpUseCase } from "../../../../application/auth/sign-up.use-case.js";
 import { SignInUseCase } from "../../../../application/auth/sign-in.use-case.js";
 
@@ -10,18 +11,16 @@ interface AuthenticatedRequest extends Request {
 @Service()
 export class AuthController {
   constructor(
+    @Inject(() => SignUpUseCase)
     private readonly signUpUseCase: SignUpUseCase,
+    @Inject(() => SignInUseCase)
     private readonly signInUseCase: SignInUseCase,
   ) {}
 
   async signup(request: Request, response: Response, next: NextFunction) {
     try {
-      const { email, password, organizationId } = request.body;
-      const user = await this.signUpUseCase.execute(
-        email,
-        password,
-        organizationId,
-      );
+      const { email, password } = request.body;
+      const user = await this.signUpUseCase.execute(email, password);
       response.status(201).json(user);
     } catch (error) {
       next(error);

@@ -23,7 +23,6 @@ describe("Validation Schemas", () => {
       const validData = {
         email: "user@example.com",
         password: "SecurePass123",
-        organizationId: "org_12345",
       };
 
       const result = signupSchema.safeParse(validData);
@@ -34,7 +33,6 @@ describe("Validation Schemas", () => {
       const invalidData = {
         email: "invalid-email",
         password: "SecurePass123",
-        organizationId: "org_12345",
       };
       testInvalid(signupSchema, invalidData, "Invalid email");
     });
@@ -43,7 +41,6 @@ describe("Validation Schemas", () => {
       const invalidData = {
         email: "user@example.com",
         password: "weakpass123",
-        organizationId: "org_12345",
       };
       testInvalid(signupSchema, invalidData, "uppercase");
     });
@@ -52,7 +49,6 @@ describe("Validation Schemas", () => {
       const invalidData = {
         email: "user@example.com",
         password: "Pass1",
-        organizationId: "org_12345",
       };
       testInvalid(signupSchema, invalidData, "at least 8");
     });
@@ -61,18 +57,8 @@ describe("Validation Schemas", () => {
       const invalidData = {
         email: "user@example.com",
         password: "SecurePassword",
-        organizationId: "org_12345",
       };
       testInvalid(signupSchema, invalidData, "number");
-    });
-
-    it("should reject invalid organization ID format", () => {
-      const invalidData = {
-        email: "user@example.com",
-        password: "SecurePass123",
-        organizationId: "org@invalid!",
-      };
-      testInvalid(signupSchema, invalidData, "Invalid organization ID");
     });
 
     it("should reject missing required fields", () => {

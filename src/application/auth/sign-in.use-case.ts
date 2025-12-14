@@ -1,5 +1,6 @@
+import "reflect-metadata";
 import { Service, Inject } from "typedi";
-import { User } from "../../domain/user/user.js";
+import { User } from "../../domain/user/user.js"
 import { SupabaseClient } from "../../adapters/outbound/authentication/supabase-client.js";
 import { HttpError } from "../../adapters/inbound/http/errors/http-error.js";
 import { AuthRepository } from "../../domain/auth/auth-repository.js";

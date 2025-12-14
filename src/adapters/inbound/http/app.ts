@@ -5,9 +5,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import YAML from "yaml";
 import { errorHandler } from "./middlewares/error-handler.js";
-import { authRouter } from "./routes/auth-routes.js";
+import { createAuthRouter } from "./routes/auth-routes.js";
 import { createIngestRouter } from "./routes/ingest-route.js";
-import { agentRoutes } from "./routes/agent-route.js";
+import { createAgentRouter } from "./routes/agent-route.js";
 import { otelLoggingMiddleware } from "./middlewares/otel-logging-middleware.js";
 
 // Load OpenAPI spec
@@ -53,9 +53,9 @@ export const createApp = async (): Promise<Application> => {
   });
 
   // Routes
-  app.use("/auth", authRouter);
+  app.use("/auth", createAuthRouter());
   app.use("/api/v1", createIngestRouter());
-  app.use("/api/v1/agents", agentRoutes);
+  app.use("/api/v1/agents", createAgentRouter());
 
   // API Documentation with Scalar (dynamic import for ESM compatibility)
   const { apiReference } = await import("@scalar/express-api-reference");

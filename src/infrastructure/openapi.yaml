@@ -52,7 +52,7 @@ paths:
       tags:
         - Auth
       summary: User Signup
-      description: Register a new user with email, password, and organization ID.
+      description: Register a new user with email and password. Organization ID is generated server-side.
       operationId: authSignup
       requestBody:
         required: true
@@ -60,7 +60,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [email, password, organizationId]
+              required: [email, password]
               properties:
                 email:
                   type: string
@@ -70,9 +70,6 @@ paths:
                   type: string
                   format: password
                   example: securePassword123
-                organizationId:
-                  type: string
-                  example: org_12345
       responses:
         "201":
           description: User created successfully

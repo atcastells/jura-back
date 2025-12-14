@@ -1,7 +1,5 @@
 import { Service } from "typedi";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import pdf from "pdf-parse";
+import { PDFParse } from "pdf-parse";
 import { DocumentParser } from "../../../domain/ports/outbound/document-parser.js";
 
 @Service()
@@ -12,10 +10,9 @@ export class PdfParserAdapter implements DocumentParser {
     }
 
     try {
-      // Handle CommonJS export mismatch
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const parseFunction = (pdf as any).default || pdf;
-      const data = await parseFunction(buffer);
+      const parser = new PDFParse({ data: buffer });
+      const data = await parser.getText();
+      await parser.destroy();
       return data.text;
     } catch (error) {
       if (error instanceof Error) {

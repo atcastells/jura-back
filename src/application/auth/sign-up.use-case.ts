@@ -1,5 +1,7 @@
+import "reflect-metadata";
 import { Service, Inject } from "typedi";
-import { User } from "../../domain/user/user.js";
+import { randomUUID } from "node:crypto";
+import { User } from "../../domain/user/user.js"
 import { SupabaseClient } from "../../adapters/outbound/authentication/supabase-client.js";
 import { HttpError } from "../../adapters/inbound/http/errors/http-error.js";
 import { AuthRepository } from "../../domain/auth/auth-repository.js";
@@ -17,7 +19,6 @@ export class SignUpUseCase {
   async execute(
     email: string,
     password: string,
-    organizationId: string,
   ): Promise<User> {
     // 1. Check if user already exists in MongoDB to prevent race condition
     const existingUser = await this.authRepository.findByEmail(email);
@@ -54,6 +55,7 @@ export class SignUpUseCase {
     }
 
     // 4. Create user profile in MongoDB
+    const organizationId = randomUUID();
     const user: Omit<User, "id"> = {
       email,
       authId: data.user.id,
