@@ -16,11 +16,13 @@ import { MongoUserRepository } from "../adapters/outbound/persistence/mongodb/mo
 import { MongoDocumentRepository } from "../adapters/outbound/persistence/mongodb/mongo-document-repository.js";
 import { MongoAgentRepository } from "../adapters/outbound/persistence/mongodb/mongo-agent-repository.js";
 import { MongoChatRepository } from "../adapters/outbound/persistence/mongodb/mongo-chat-repository.js";
+import { MongoProfileRepository } from "../adapters/outbound/persistence/mongodb/mongo-profile-repository.js";
 import {
   AUTH_REPOSITORY,
   DOCUMENT_REPOSITORY,
   AGENT_REPOSITORY,
   CHAT_REPOSITORY,
+  PROFILE_REPOSITORY,
 } from "./constants.js";
 import { config } from "./config.js";
 try {
@@ -89,6 +91,10 @@ try {
   // Register Chat Repository
   const mongoChatRepository = Container.get(MongoChatRepository);
   Container.set(CHAT_REPOSITORY, mongoChatRepository);
+
+  // Register Profile Repository
+  const mongoProfileRepository = Container.get(MongoProfileRepository);
+  Container.set(PROFILE_REPOSITORY, mongoProfileRepository);
 
   // Create Express app
   const app = await createApp();
