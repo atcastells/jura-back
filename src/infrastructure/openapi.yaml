@@ -22,6 +22,8 @@ tags:
     description: Document ingestion and management endpoints
   - name: Agents
     description: Agent configuration and management endpoints
+  - name: Profile
+    description: User profile management endpoints
 
 paths:
   /health:
@@ -461,6 +463,145 @@ paths:
         "404":
           description: Thread not found
 
+  /api/v1/profile/me:
+    get:
+      tags:
+        - Profile
+      summary: Get My Profile
+      description: Retrieve the current user's profile. Creates a new profile if one doesn't exist.
+      operationId: getMyProfile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "401":
+          description: Unauthorized
+
+    patch:
+      tags:
+        - Profile
+      summary: Update My Profile
+      description: Update top-level profile fields (basics, summary, skills, preferences).
+      operationId: updateMyProfile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+      responses:
+        "200":
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "400":
+          description: Bad request (validation error)
+        "401":
+          description: Unauthorized
+        "404":
+          description: Profile not found
+
+  /api/v1/profile/me/roles:
+    post:
+      tags:
+        - Profile
+      summary: Add Role
+      description: Add a new work role/experience to the profile.
+      operationId: addRole
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddRoleRequest"
+      responses:
+        "201":
+          description: Role added successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "400":
+          description: Bad request (validation error)
+        "401":
+          description: Unauthorized
+        "404":
+          description: Profile not found
+
+  /api/v1/profile/me/roles/{roleId}:
+    patch:
+      tags:
+        - Profile
+      summary: Update Role
+      description: Update an existing work role/experience.
+      operationId: updateRole
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: roleId
+          required: true
+          schema:
+            type: string
+          description: Role ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRoleRequest"
+      responses:
+        "200":
+          description: Role updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "400":
+          description: Bad request (validation error)
+        "401":
+          description: Unauthorized
+        "404":
+          description: Profile or role not found
+
+    delete:
+      tags:
+        - Profile
+      summary: Delete Role
+      description: Delete a work role/experience from the profile.
+      operationId: deleteRole
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: roleId
+          required: true
+          schema:
+            type: string
+          description: Role ID
+      responses:
+        "200":
+          description: Role deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Profile or role not found
+
 components:
   securitySchemes:
     bearerAuth:
@@ -629,3 +770,321 @@ components:
         createdAt:
           type: string
           format: date-time
+
+    Profile:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        basics:
+          $ref: "#/components/schemas/ProfileBasics"
+        summary:
+          type: string
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileRole"
+        projects:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileProject"
+        education:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileEducation"
+        certifications:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileCertification"
+        achievements:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileAchievement"
+        skills:
+          type: array
+          items:
+            type: string
+        languages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileLanguage"
+        preferences:
+          $ref: "#/components/schemas/ProfilePreferences"
+        completenessScore:
+          type: number
+          description: Profile completeness score (0-100)
+        evidence:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileEvidence"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ProfileBasics:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        name:
+          type: string
+        location:
+          type: string
+        linkedIn:
+          type: string
+        github:
+          type: string
+        website:
+          type: string
+
+    ProfileRole:
+      type: object
+      required:
+        - id
+        - title
+        - highlights
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        company:
+          type: string
+        location:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        current:
+          type: boolean
+        description:
+          type: string
+        highlights:
+          type: array
+          items:
+            type: string
+
+    ProfileProject:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        url:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        technologies:
+          type: array
+          items:
+            type: string
+
+    ProfileEducation:
+      type: object
+      required:
+        - id
+        - institution
+      properties:
+        id:
+          type: string
+        institution:
+          type: string
+        degree:
+          type: string
+        field:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        description:
+          type: string
+
+    ProfileCertification:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        issuer:
+          type: string
+        issueDate:
+          type: string
+        expiryDate:
+          type: string
+        credentialId:
+          type: string
+        url:
+          type: string
+
+    ProfileAchievement:
+      type: object
+      required:
+        - id
+        - title
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        date:
+          type: string
+
+    ProfileLanguage:
+      type: object
+      required:
+        - language
+      properties:
+        language:
+          type: string
+        proficiency:
+          type: string
+
+    ProfilePreferences:
+      type: object
+      properties:
+        lookingForWork:
+          type: boolean
+        preferredRoles:
+          type: array
+          items:
+            type: string
+        preferredLocations:
+          type: array
+          items:
+            type: string
+        remoteOnly:
+          type: boolean
+        salaryExpectation:
+          type: string
+
+    ProfileEvidence:
+      type: object
+      required:
+        - fieldPath
+        - source
+        - confidence
+      properties:
+        fieldPath:
+          type: string
+        source:
+          type: string
+        confidence:
+          type: number
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        basics:
+          type: object
+          properties:
+            email:
+              type: string
+              format: email
+            phone:
+              type: string
+            name:
+              type: string
+            location:
+              type: string
+            linkedIn:
+              type: string
+            github:
+              type: string
+            website:
+              type: string
+        summary:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        preferences:
+          type: object
+          properties:
+            lookingForWork:
+              type: boolean
+            preferredRoles:
+              type: array
+              items:
+                type: string
+            preferredLocations:
+              type: array
+              items:
+                type: string
+            remoteOnly:
+              type: boolean
+            salaryExpectation:
+              type: string
+
+    AddRoleRequest:
+      type: object
+      required:
+        - title
+        - highlights
+      properties:
+        title:
+          type: string
+        company:
+          type: string
+        location:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        current:
+          type: boolean
+        description:
+          type: string
+        highlights:
+          type: array
+          items:
+            type: string
+
+    UpdateRoleRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        company:
+          type: string
+        location:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        current:
+          type: boolean
+        description:
+          type: string
+        highlights:
+          type: array
+          items:
+            type: string

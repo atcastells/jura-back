@@ -25,7 +25,7 @@ import {
  */
 @Service()
 export class ToolRegistry {
-  private profileTools: DynamicStructuredTool[] | null = null;
+  private profileTools?: DynamicStructuredTool[];
 
   constructor() {
     // Add more tool dependencies here as they are created
@@ -109,7 +109,7 @@ export class ToolRegistry {
    * Useful for testing or when configuration changes.
    */
   reset(): void {
-    this.profileTools = null;
+    this.profileTools = undefined;
     // Add reset calls for other tools as they are created
   }
 }
