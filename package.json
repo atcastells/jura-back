@@ -1,8 +1,8 @@
 {
-  "name": "node-hexagonal-backend",
+  "name": "@echo/backend",
   "version": "1.0.0",
   "type": "module",
-  "description": "Hexagonal architecture backend",
+  "description": "Echo Backend API - AI Career Agent",
   "main": "dist/infrastructure/server.js",
   "scripts": {
     "dev": "nodemon",
@@ -75,6 +75,7 @@
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.5",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
 }

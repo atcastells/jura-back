@@ -2,7 +2,7 @@
   "watch": ["src"],
   "ext": "ts,json",
   "ignore": ["src/**/*.test.ts", "node_modules"],
-  "exec": "node --loader ts-node/esm src/infrastructure/server.ts",
+  "exec": "node --import tsx src/infrastructure/server.ts",
   "legacyWatch": true,
   "delay": 1000
 }
