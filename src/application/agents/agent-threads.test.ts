@@ -8,8 +8,7 @@ import { Thread } from "../../domain/entities/thread.js";
 import { ChatMessage, ChatRole } from "../../domain/entities/chat-message.js";
 import { AgentRepository } from "../../domain/ports/outbound/agent-repository.js";
 import { ChatRepository } from "../../domain/ports/outbound/chat-repository.js";
-import { RetrieveContextUseCase } from "../../application/services/retrieve-context.use-case.js";
-import { LangChainGeminiAdapter } from "../../adapters/outbound/external-services/lang-chain-gemini-adapter.js";
+import { ConversationAgentFactory } from "../../adapters/inbound/primary/agents/conversation-agent-factory.js";
 import { AIMessage } from "@langchain/core/messages";
 
 // Mocks
@@ -23,11 +22,8 @@ const mockChatRepository = {
   saveMessage: jest.fn(),
   getMessages: jest.fn(),
 };
-const mockRetrieveContext = {
-  execute: jest.fn(),
-};
-const mockLlm = {
-  invoke: jest.fn(),
+const mockConversationAgentFactory = {
+  buildWithSystemPrompt: jest.fn(),
 };
 
 describe("Chat Threads & History", () => {
@@ -41,8 +37,7 @@ describe("Chat Threads & History", () => {
     chatWithAgentUseCase = new ChatWithAgentUseCase(
       mockAgentRepository as unknown as AgentRepository,
       mockChatRepository as unknown as ChatRepository,
-      mockRetrieveContext as unknown as RetrieveContextUseCase,
-      mockLlm as unknown as LangChainGeminiAdapter,
+      mockConversationAgentFactory as unknown as ConversationAgentFactory,
     );
     createThreadUseCase = new CreateThreadUseCase(
       mockChatRepository as unknown as ChatRepository,
@@ -151,8 +146,13 @@ describe("Chat Threads & History", () => {
   describe("Chat with History", () => {
     it("should load history and save new messages", async () => {
       mockAgentRepository.findById.mockResolvedValue(agentWithThreads);
-      mockRetrieveContext.execute.mockResolvedValue([]);
-      mockLlm.invoke.mockResolvedValue(new AIMessage("AI Reply"));
+
+      const mockInvoke = jest
+        .fn()
+        .mockResolvedValue({ messages: [new AIMessage("AI Reply")] });
+      mockConversationAgentFactory.buildWithSystemPrompt.mockReturnValue({
+        invoke: mockInvoke,
+      });
 
       const mockThread: Thread = {
         id: "thread-1",
@@ -192,14 +192,15 @@ describe("Chat Threads & History", () => {
       // Verify History Loading
       expect(mockChatRepository.getMessages).toHaveBeenCalledWith("thread-1");
 
-      // Verify Logic passed history to LLM
-      // We can check the messages passed to LLM invoke
-      const llmCalls = mockLlm.invoke.mock.calls[0][0];
-      // System + History (User, AI) + New User Message = 4 messages
-      expect(llmCalls).toHaveLength(4);
-      expect(llmCalls[1].content).toBe("Hello");
-      expect(llmCalls[2].content).toBe("Hi");
-      expect(llmCalls[3].content).toBe("How are you?");
+      // Verify agent factory was called with tools
+      expect(mockConversationAgentFactory.buildWithSystemPrompt).toHaveBeenCalled();
+
+      // Verify chat history was passed to invoke
+      const invokeArgs = mockInvoke.mock.calls[0][0];
+      expect(invokeArgs.input).toBe("How are you?");
+      expect(invokeArgs.chat_history).toHaveLength(2);
+      expect(invokeArgs.chat_history[0].content).toBe("Hello");
+      expect(invokeArgs.chat_history[1].content).toBe("Hi");
 
       // Verify Saving
       expect(mockChatRepository.saveMessage).toHaveBeenCalledTimes(2); // User msg + AI reply

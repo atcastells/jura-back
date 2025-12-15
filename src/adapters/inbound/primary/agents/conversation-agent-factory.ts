@@ -55,6 +55,19 @@ export class ConversationAgentFactory {
     return this.isEnabled;
   }
 
+  private createModel(): ChatGoogleGenerativeAI {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY environment variable is required");
+    }
+
+    return new ChatGoogleGenerativeAI({
+      apiKey,
+      model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+      temperature: 0.7,
+    });
+  }
+
   /**
    * Executes a single tool call and returns the resulting ToolMessage.
    */
@@ -162,6 +175,67 @@ export class ConversationAgentFactory {
 
         // No tools needed, return direct response
         return { messages: [...messages, response] };
+      },
+    };
+  }
+
+  buildWithSystemPrompt(options: {
+    systemPrompt: string;
+    tools: DynamicStructuredTool[];
+    maxToolRounds?: number;
+  }): {
+    invoke: (arguments_: {
+      input: string;
+      chat_history?: BaseMessage[];
+    }) => Promise<{ messages: BaseMessage[] }>;
+  } {
+    const model = this.createModel();
+    const tools = options.tools;
+    const maxToolRounds = options.maxToolRounds ?? 3;
+
+    const modelWithTools = model.bindTools(tools);
+
+    return {
+      invoke: async ({
+        input,
+        chat_history,
+      }: {
+        input: string;
+        chat_history?: BaseMessage[];
+      }) => {
+        const messages: BaseMessage[] = [
+          new SystemMessage(options.systemPrompt),
+          ...(chat_history ?? []),
+          new HumanMessage(input),
+        ];
+
+        const allMessages: BaseMessage[] = [...messages];
+
+        // Tool-calling loop (bounded)
+        for (let round = 0; round < maxToolRounds; round++) {
+          const response = await modelWithTools.invoke(allMessages);
+          allMessages.push(response);
+
+          if (!response.tool_calls || response.tool_calls.length === 0) {
+            return { messages: allMessages };
+          }
+
+          const toolResults = await this.executeToolCalls(
+            response.tool_calls,
+            tools,
+          );
+
+          // If we couldn't resolve any tool call, stop to avoid infinite loops
+          if (toolResults.length === 0) {
+            return { messages: allMessages };
+          }
+
+          allMessages.push(...toolResults);
+        }
+
+        // Max rounds reached; get a final response without forcing further tools
+        const finalResponse = await model.invoke(allMessages);
+        return { messages: [...allMessages, finalResponse] };
       },
     };
   }

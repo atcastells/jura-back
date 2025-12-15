@@ -3,10 +3,8 @@ import { ChatWithAgentUseCase } from "../../application/agents/chat-with-agent.u
 import { Agent, AgentType } from "../../domain/entities/agent.js";
 import { AgentRepository } from "../../domain/ports/outbound/agent-repository.js";
 import { ChatRepository } from "../../domain/ports/outbound/chat-repository.js";
-import { RetrieveContextUseCase } from "../../application/services/retrieve-context.use-case.js";
-import { LangChainGeminiAdapter } from "../../adapters/outbound/external-services/lang-chain-gemini-adapter.js";
+import { ConversationAgentFactory } from "../../adapters/inbound/primary/agents/conversation-agent-factory.js";
 import { AIMessage } from "@langchain/core/messages";
-import { DocumentChunk } from "../../domain/entities/document-chunk.js";
 
 // Mocks
 const mockAgentRepository = {
@@ -19,11 +17,8 @@ const mockChatRepository = {
   saveMessage: jest.fn(),
   getMessages: jest.fn(),
 };
-const mockRetrieveContext = {
-  execute: jest.fn(),
-};
-const mockLlm = {
-  invoke: jest.fn(),
+const mockConversationAgentFactory = {
+  buildWithSystemPrompt: jest.fn(),
 };
 
 describe("Chat With Agent", () => {
@@ -34,12 +29,11 @@ describe("Chat With Agent", () => {
     chatWithAgentUseCase = new ChatWithAgentUseCase(
       mockAgentRepository as unknown as AgentRepository,
       mockChatRepository as unknown as ChatRepository,
-      mockRetrieveContext as unknown as RetrieveContextUseCase,
-      mockLlm as unknown as LangChainGeminiAdapter,
+      mockConversationAgentFactory as unknown as ConversationAgentFactory,
     );
   });
 
-  it("should generate a response using agent instructions and context", async () => {
+  it("should generate a response using agent instructions", async () => {
     // Setup Data
     const agentId = "agent-1";
     const userId = "user-123";
@@ -58,24 +52,15 @@ describe("Chat With Agent", () => {
       updatedAt: new Date(),
     };
 
-    const mockChunks: DocumentChunk[] = [
-      {
-        id: "chunk-1",
-        documentId: "doc-1",
-        userId,
-        content: "To create a user, POST to /auth/signup.",
-        metadata: { source: "manual.pdf" },
-        chunkIndex: 0,
-        embedding: [],
-      },
-    ];
-
     // Setup Mocks
     mockAgentRepository.findById.mockResolvedValue(mockAgent);
-    mockRetrieveContext.execute.mockResolvedValue(mockChunks);
-    mockLlm.invoke.mockResolvedValue(
-      new AIMessage("Arrr! POST to /auth/signup!"),
-    );
+
+    const mockInvoke = jest
+      .fn()
+      .mockResolvedValue({ messages: [new AIMessage("Arrr! POST to /auth/signup!")] });
+    mockConversationAgentFactory.buildWithSystemPrompt.mockReturnValue({
+      invoke: mockInvoke,
+    });
 
     // Execute
     const response = await chatWithAgentUseCase.execute({
@@ -89,16 +74,19 @@ describe("Chat With Agent", () => {
 
     // Verify mocks called correctly
     expect(mockAgentRepository.findById).toHaveBeenCalledWith(agentId);
-    expect(mockRetrieveContext.execute).toHaveBeenCalledWith(userId, message);
 
-    // Verify LLM prompt construction (indirectly checking if instructions were used)
-    const llmCalls = mockLlm.invoke.mock.calls[0][0];
-    const systemMessage = llmCalls.find((m: any) => m._getType() === "system");
-    expect(systemMessage.content).toContain(instructions);
-    expect(systemMessage.content).toContain(tone);
-    expect(systemMessage.content).toContain(
-      "To create a user, POST to /auth/signup.",
-    );
+    expect(mockConversationAgentFactory.buildWithSystemPrompt).toHaveBeenCalled();
+
+    const buildArgs = mockConversationAgentFactory.buildWithSystemPrompt.mock
+      .calls[0][0];
+    expect(buildArgs.systemPrompt).toContain(instructions);
+    expect(buildArgs.systemPrompt).toContain(tone);
+    expect(buildArgs.tools).toHaveLength(1);
+
+    expect(mockInvoke).toHaveBeenCalledWith({
+      input: message,
+      chat_history: [],
+    });
   });
 
   it("should throw error if agent not found", async () => {

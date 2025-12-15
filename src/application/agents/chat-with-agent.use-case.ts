@@ -1,23 +1,22 @@
 import { Service, Inject } from "typedi";
 import { AgentRepository } from "../../domain/ports/outbound/agent-repository.js";
 import { ChatRepository } from "../../domain/ports/outbound/chat-repository.js";
-import { RetrieveContextUseCase } from "../services/retrieve-context.use-case.js";
-import { LangChainGeminiAdapter } from "../../adapters/outbound/external-services/lang-chain-gemini-adapter.js";
+import { ConversationAgentFactory } from "../../adapters/inbound/primary/agents/conversation-agent-factory.js";
 import {
   HumanMessage,
   SystemMessage,
-  BaseMessage,
   AIMessage,
+  BaseMessage,
 } from "@langchain/core/messages";
 import {
   AGENT_REPOSITORY,
   CHAT_REPOSITORY,
 } from "../../infrastructure/constants.js";
 import { Agent, AgentType } from "../../domain/entities/agent.js";
-import { DocumentChunk } from "../../domain/entities/document-chunk.js";
 import { ChatRole } from "../../domain/entities/chat-message.js";
 import { randomUUID } from "node:crypto";
 import { HttpError } from "../../adapters/inbound/http/errors/http-error.js";
+import { createRetrieveContextTool } from "../../adapters/outbound/external-services/tools/rag/retrieve-context.tool.js";
 
 export interface ChatWithAgentInput {
   agentId: string;
@@ -33,10 +32,8 @@ export class ChatWithAgentUseCase {
     private readonly agentRepository: AgentRepository,
     @Inject(CHAT_REPOSITORY)
     private readonly chatRepository: ChatRepository,
-    @Inject(() => RetrieveContextUseCase)
-    private readonly retrieveContext: RetrieveContextUseCase,
-    @Inject(() => LangChainGeminiAdapter)
-    private readonly llm: LangChainGeminiAdapter,
+    @Inject(() => ConversationAgentFactory)
+    private readonly conversationAgentFactory: ConversationAgentFactory,
   ) {}
 
   async execute(input: ChatWithAgentInput): Promise<string> {
@@ -57,42 +54,37 @@ export class ChatWithAgentUseCase {
       await this.validateThreadAccess(threadId, userId, agent);
     }
 
-    // 2. Retrieve Context (RAG)
-    const chunks: DocumentChunk[] = await this.retrieveContext.execute(
-      userId,
-      message,
-    );
-
-    const contextText = chunks
-      .map(
-        (chunk) =>
-          `[Source: ${chunk.metadata?.source || "Unknown"}]\n${chunk.content}`,
-      )
-      .join("\n\n");
-
-    // 3. Construct Prompt (System + History)
-    const messages: BaseMessage[] = [
-      this.buildSystemMessage(agent, contextText),
-    ];
+    // 2. Construct Prompt (System + History)
+    // RAG is available as a tool; it should be invoked by the model when needed.
+    const systemMessage = this.buildSystemMessage(agent);
+    const chatHistory: BaseMessage[] = [];
 
     // Load History if Threaded
     if (threadId) {
       const history = await this.chatRepository.getMessages(threadId);
       for (const message_ of history) {
         if (message_.role === ChatRole.USER) {
-          messages.push(new HumanMessage(message_.content));
+          chatHistory.push(new HumanMessage(message_.content));
         } else if (message_.role === ChatRole.ASSISTANT) {
-          messages.push(new AIMessage(message_.content));
+          chatHistory.push(new AIMessage(message_.content));
         }
       }
     }
 
-    // Add current user message
-    messages.push(new HumanMessage(message));
+    // 3. Generate Response via tool-capable agent
+    const tools = [createRetrieveContextTool(userId)];
+    const agentExecutor = this.conversationAgentFactory.buildWithSystemPrompt({
+      systemPrompt: systemMessage.content.toString(),
+      tools,
+    });
 
-    // 4. Generate Response
-    const response = await this.llm.invoke(messages);
-    const replyContent = response.content.toString();
+    const result = await agentExecutor.invoke({
+      input: message,
+      chat_history: chatHistory,
+    });
+
+    const lastMessage = result.messages[result.messages.length - 1];
+    const replyContent = lastMessage?.content?.toString() ?? "";
 
     // 5. Save Persistence (Async)
     if (threadId) {
@@ -116,7 +108,7 @@ export class ChatWithAgentUseCase {
       throw new HttpError(403, "Unauthorized access to thread");
   }
 
-  private buildSystemMessage(agent: Agent, contextText: string): SystemMessage {
+  private buildSystemMessage(agent: Agent): SystemMessage {
     return new SystemMessage(`
 You are an AI assistant named "${agent.name}".
 Your instructions are:
@@ -124,11 +116,8 @@ ${agent.configuration.systemPrompt}
 
 Tone: ${agent.configuration.tone}
 
-Use the following context to answer the user's question.
-If the answer is not in the context, use your general knowledge but prioritize the instructions.
-
-Context:
-${contextText}
+If you need factual details from the user's uploaded documents, call the tool "retrieve_context" with an appropriate query.
+The tool returns JSON with relevant snippets and metadata. Use it to ground your answer.
 `);
   }
 
